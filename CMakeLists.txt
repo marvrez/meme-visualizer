@@ -3,7 +3,7 @@ project(meme_visualizer)
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 
-add_definitions("-std=c++11 -O3") 
+add_definitions("-std=c++11 -O3 -Wno-write-strings") 
 
 include(FindPkgConfig)
 pkg_search_module(SDL2 sdl2)
