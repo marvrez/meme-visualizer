@@ -1,5 +1,6 @@
 #include "vdb/vdb.h"
 
+#include <vector>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
@@ -37,14 +38,9 @@ int main(int, char **)
     RNG rng(-1, 1);
     struct item_t { float x,y; };
     const int num_items = 2000;
-    static item_t items[num_items];
 
-    srand(12345);
-    for (int i = 0; i < num_items; i++)
-    {
-        items[i].x = rng.getFloat();//-1.0f + 2.0f*(rand() % 10000)/10000.0f;
-        items[i].y = rng.getFloat();//-1.0f + 2.0f*(rand() % 10000)/10000.0f;
-    }
+    static std::vector<item_t> items;
+    for (int i = 0; i < num_items; i++) items.push_back({rng.getFloat(), rng.getFloat()});
 
     VDBB("k-means clustering");
     {
@@ -56,7 +52,7 @@ int main(int, char **)
         vdbGridXY(-1, +1, -1, +1, 2);
         glEnd();
 
-        for (int i = 0; i < num_items; i++)
+        for (int i = 0; i < items.size(); i++)
         {
             float x = items[i].x;
             float y = items[i].y;
@@ -79,7 +75,7 @@ int main(int, char **)
             glVertex2f(x, y);
             glEnd();
 
-            if (i < num_items-1)
+            if (i < items.size()-1)
             {
                 float x2 = items[i+1].x;
                 float y2 = items[i+1].y;
@@ -99,14 +95,13 @@ int main(int, char **)
         ImGui::InputText("Filename", filename, sizeof(filename));
         ImGui::Separator();
 
-        if (ImGui::Button("OK", ImVec2(120,0))) {
+        if (ImGui::Button("OK", ImVec2(120,0))) 
+        {
             matrix m = csv_to_matrix(filename);
-            for(int i = 0; i < m.rows; ++i) {
-                for(int j = 0; j < m.cols; ++j) {
-                    printf("%f ", m.vals[i][j]);
-                }
-                printf("\n");
-            }
+            
+            items.clear();
+            items.resize(m.rows);
+            for(int i = 0; i < m.rows; ++i) items[i] = { m.vals[i][0], m.vals[i][1] };
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
@@ -115,7 +110,6 @@ int main(int, char **)
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
-
     }
     }
     VDBE();
