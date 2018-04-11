@@ -5,13 +5,11 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "rng.h"
 #include "matrix.h"
 
 typedef struct {
     float r, g, b;
 } color;
-
 
 void draw_line(float x1, float y1, float x2, float y2) 
 {
@@ -35,16 +33,11 @@ int main(int, char **)
     // Ctrl+W : Set window size
     // Escape : Close window
 
-    RNG rng(-1, 1);
-    struct item_t { float x,y; };
-    const int num_items = 2000;
-
-    static std::vector<item_t> items;
-    for (int i = 0; i < num_items; i++) items.push_back({rng.getFloat(), rng.getFloat()});
+    const int rows = 2000, cols = 2;
+    static matrix_t data = create_random_matrix(rows, cols);
 
     VDBB("k-means clustering");
     {
-
         vdb2D(-1, +1, -1, +1);
 
         glLines(5.0f);
@@ -52,10 +45,10 @@ int main(int, char **)
         vdbGridXY(-1, +1, -1, +1, 2);
         glEnd();
 
-        for (int i = 0; i < items.size(); i++)
+        for (int i = 0; i < data.rows; i++)
         {
-            float x = items[i].x;
-            float y = items[i].y;
+            float x = data.vals[i][0];
+            float y = data.vals[i][1];
             glColor4f(0.3f, 0.7f, 0.3f, 1.0f);
 
             glPoints(8.0f);
@@ -75,10 +68,10 @@ int main(int, char **)
             glVertex2f(x, y);
             glEnd();
 
-            if (i < items.size()-1)
+            if (i < data.rows-1)
             {
-                float x2 = items[i+1].x;
-                float y2 = items[i+1].y;
+                float x2 = data.vals[i+1][0];
+                float y2 = data.vals[i+1][1];
                 glLines(2.0f);
                 glVertex2f(x, y); glVertex2f(x2, y2);
                 glEnd();
@@ -97,11 +90,7 @@ int main(int, char **)
 
         if (ImGui::Button("OK", ImVec2(120,0))) 
         {
-            matrix m = csv_to_matrix(filename);
-            
-            items.clear();
-            items.resize(m.rows);
-            for(int i = 0; i < m.rows; ++i) items[i] = { m.vals[i][0], m.vals[i][1] };
+            data = csv_to_matrix(filename);
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
@@ -111,6 +100,13 @@ int main(int, char **)
         }
         ImGui::EndPopup();
     }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Random"))
+    {
+        data = create_random_matrix(rows, cols);
+    }
+
     }
     VDBE();
 

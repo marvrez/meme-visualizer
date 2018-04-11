@@ -61,4 +61,7 @@ private:
     std::bernoulli_distribution bDist;
 };
 
+static RNG rng0(0,1);
+static RNG rng1(-1,1);
+
 #endif // RNG_H
