@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include "matrix.h"
+#include "cluster_generator.h"
 
 typedef struct {
     float r, g, b;
@@ -105,6 +106,11 @@ int main(int, char **)
     if (ImGui::Button("Random"))
     {
         data = create_random_matrix(rows, cols);
+    }
+
+    if(ImGui::Button("Cluster"))
+    {
+        std::vector<std::vector<float> > centroids;
     }
 
     }
