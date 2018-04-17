@@ -32,3 +32,5 @@
 *.app
 
 build/
+*.ini
+*.DS_Store
