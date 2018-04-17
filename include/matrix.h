@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <fstream>
 #include <sstream>
+#include <ostream>
 #include <vector>
 
 #include "rng.h"
@@ -27,5 +28,6 @@ float variance_matrix(const matrix_t& m);
 int count_fields(std::string line);
 std::vector<float> parse_row(std::string line);
 matrix_t csv_to_matrix(std::string filename);
+std::ostream& operator<<(std::ostream& os, const matrix_t& mat);
 
 #endif

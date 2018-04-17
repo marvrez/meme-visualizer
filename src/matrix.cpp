@@ -75,3 +75,16 @@ matrix_t csv_to_matrix(std::string filename)
     m.rows = m.vals.size(), m.cols = m.vals[0].size();
     return m;
 }
+
+std::ostream& operator<<(std::ostream& os, const matrix_t& mat) 
+{
+    for(int i = 0; i < mat.rows; ++i)
+    {
+        for(int j = 0; j < mat.cols; ++j)
+        {
+            os << mat.vals[i][j] << " ";
+        }
+        os << std::endl;
+    }
+    return os;
+}
