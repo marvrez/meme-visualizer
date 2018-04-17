@@ -1,9 +1,12 @@
 #include "matrix.h"
 
+#include <cstdio>
+
 matrix_t make_matrix(int rows, int cols)
 {
     matrix_t m;
-    m.rows = rows, m.cols = cols;
+    m.rows = rows;
+    m.cols = cols;
     m.vals = std::vector<std::vector<float> >(m.rows, std::vector<float>(m.cols));
     return m;
 }
@@ -33,6 +36,26 @@ matrix_t create_random_matrix(int rows, int cols)
         for(int j = 0; j < cols; ++j) {
             m.vals[i][j] = rng1.getFloat();
         }
+    }
+    return m;
+}
+
+void clear_matrix(matrix_t* m)
+{
+    m->vals.clear();
+    m->rows = 0;
+    m->cols = 0;
+}
+
+matrix_t concat_matrix(matrix_t a, matrix_t b)
+{
+    int count = 0;
+    matrix m = make_matrix(a.rows + b.rows, a.cols);
+    for(auto val : a.vals) {
+        m.vals[count++] = val;
+    }
+    for(auto val : b.vals) {
+        m.vals[count++] = val;
     }
     return m;
 }
@@ -76,15 +99,27 @@ matrix_t csv_to_matrix(std::string filename)
     return m;
 }
 
-std::ostream& operator<<(std::ostream& os, const matrix_t& mat) 
+void print_matrix(const matrix_t& m) 
 {
-    for(int i = 0; i < mat.rows; ++i)
+    printf("%d X %d Matrix:\n",m.rows, m.cols);
+    printf(" __");
+    for(int j = 0; j < 16*m.cols-1; ++j) printf(" ");
+    printf("__ \n");
+
+    printf("|  ");
+    for(int j = 0; j < 16*m.cols-1; ++j) printf(" ");
+    printf("  |\n");
+
+    for(int i = 0; i < m.rows; ++i)
     {
-        for(int j = 0; j < mat.cols; ++j)
+        printf("|  ");
+        for(int j = 0; j < m.cols; ++j)
         {
-            os << mat.vals[i][j] << " ";
+            printf("%15.7f ", m.vals[i][j]);
         }
-        os << std::endl;
+        printf(" |\n");
     }
-    return os;
+    printf("|__");
+    for(int j = 0; j < 16*m.cols-1; ++j) printf(" ");
+    printf("__|\n");
 }

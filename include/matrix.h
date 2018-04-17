@@ -20,6 +20,9 @@ matrix_t make_matrix(int rows, int cols);
 void zero_matrix(matrix_t& m);
 matrix_t create_random_matrix(int rows, int cols);
 
+void clear_matrix(matrix_t* m);
+matrix_t concat_matrix(matrix_t a, matrix_t b);
+
 // statistics stuff
 float mean_matrix(const matrix_t& m);
 float variance_matrix(const matrix_t& m);
@@ -28,6 +31,6 @@ float variance_matrix(const matrix_t& m);
 int count_fields(std::string line);
 std::vector<float> parse_row(std::string line);
 matrix_t csv_to_matrix(std::string filename);
-std::ostream& operator<<(std::ostream& os, const matrix_t& mat);
+void print_matrix(const matrix_t& m);
 
 #endif
