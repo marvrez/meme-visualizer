@@ -108,6 +108,11 @@ int main(int, char **)
             data = create_random_matrix(rng0.Rand(500), cols);
         }
 
+        if (ImGui::Button("Kmeans"))
+        {
+
+        }
+
         if (ImGui::CollapsingHeader("Generate clusters"))
         {
 
