@@ -108,14 +108,13 @@ int main(int, char **)
             data = create_random_matrix(rng0.Rand(500), cols);
         }
 
-        if (ImGui::Button("Kmeans"))
+        if (ImGui::Button("Covariance"))
         {
-
+            //soon™
         }
 
         if (ImGui::CollapsingHeader("Generate clusters"))
         {
-
             static int num_clusters = 0;
             ImGui::SliderInt("number of clusters", &num_clusters, 0, 100);
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
@@ -129,9 +128,7 @@ int main(int, char **)
                 matrix_t centroids = create_random_matrix(num_clusters, 2);
                 auto clusters = generate_clusters(centroids, 50, sigma);
                 clear_matrix(&data);
-                for(const auto& cluster : clusters) {
-                    data = concat_matrix(data, cluster);
-                }
+                for(const auto& cluster : clusters) data = concat_matrix(data, cluster);
             }
         }
     }
