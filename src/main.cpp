@@ -56,24 +56,12 @@ int main(int, char **)
             glEnd();
 
             glColor3f(0.3f, 0.7f, 0.3f);
-            if (vdbIsPointHovered(x, y))
-                SetTooltip("Hovered point\nx = %.2f\ny = %.2f", x, y);
-        }
-
-        {
-            float x,y;
-            int i = vdbGetHoveredPoint(&x, &y);
-            glPoints(16.0f);
-            glColor4f(1.0f, 0.9f, 0.2f, 0.5f);
-            glVertex2f(x, y);
-            glEnd();
-
-            if (i < data.rows-1)
+            if (vdbIsPointHovered(x, y)) 
             {
-                float x2 = data.vals[i+1][0];
-                float y2 = data.vals[i+1][1];
-                glLines(2.0f);
-                glVertex2f(x, y); glVertex2f(x2, y2);
+                SetTooltip("Hovered point\nx = %.2f\ny = %.2f", x, y);
+                glPoints(16.0f);
+                glColor4f(1.0f, 0.9f, 0.2f, 0.5f);
+                glVertex2f(x, y);
                 glEnd();
             }
         }
@@ -126,7 +114,7 @@ int main(int, char **)
 
         if (ImGui::CollapsingHeader("Cluster data"))
         {
-            static int num_clusters = 0;
+            static int num_clusters = 2;
             ImGui::SliderInt("number of clusters", &num_clusters, 0, 100);
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
