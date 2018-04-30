@@ -1,19 +1,8 @@
-#ifndef CLUSTER_GENERATOR_H
-#define CLUSTER_GENERATOR_H
+#include "data_gen.h"
 
-#include <vector>
-#include <random>
 #include <iostream>
 
-float normal_dist(float mu, float sigma) 
-{
-    static std::mt19937 gen(std::random_device{}());
-    std::normal_distribution<float> distr(mu, sigma);
-    return distr(gen);
-}
-
-// Primary cluster generator - aborts if no centroids have been imported.
-std::vector<matrix_t> generate_clusters(matrix_t centroids, const int max_num_points, const float sigma) 
+std::vector<matrix_t> generate_clusters(const matrix_t& centroids, const int max_num_points, const float sigma) 
 {
     if (centroids.vals.empty()) 
     {
@@ -39,4 +28,8 @@ std::vector<matrix_t> generate_clusters(matrix_t centroids, const int max_num_po
     return clusters;
 }
 
-#endif
+matrix_t generate_covariance_data(const matrix_t& sigma)
+{
+    matrix_t result = {};
+    return result;
+}

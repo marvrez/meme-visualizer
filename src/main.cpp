@@ -1,12 +1,11 @@
 #include "vdb/vdb.h"
+#include "matrix.h"
+#include "data_gen.h"
 
 #include <vector>
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-
-#include "matrix.h"
-#include "cluster_generator.h"
 
 typedef struct {
     float r, g, b, a;
@@ -108,9 +107,21 @@ int main(int, char **)
             data = create_random_matrix(rng0.Rand(500), cols);
         }
 
-        if (ImGui::Button("Covariance"))
+        if (ImGui::CollapsingHeader("Generate covariance data"))
         {
-            //soon™
+            static float cov_x = 0;
+            ImGui::SliderFloat("x-covariance", &cov_x, -10.0f, 10.0f, "cov_x = %.3f");
+            ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
+
+            static float cov_y = 0.1f;
+            ImGui::SliderFloat("y-covariance", &cov_y, -10.0f, 10.0f, "cov_y = %.3f");
+            ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
+
+            if(ImGui::Button("Generate"))
+            {
+                matrix_t cov_mat = {1, 2, {{cov_x, cov_y}}};
+                data = generate_covariance_data(cov_mat);
+            }
         }
 
         if (ImGui::CollapsingHeader("Generate clusters"))

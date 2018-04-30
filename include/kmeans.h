@@ -1,11 +1,13 @@
 #ifndef KMEANS_H
 #define KMEANS_H
 
+#include "matrix.h"
+
 #include <vector>
 
 typedef struct {
     std::vector<int> assignments;
-    matrix centers;
+    matrix_t centers;
 } model_t;
 
 typedef enum {
