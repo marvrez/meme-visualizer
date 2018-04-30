@@ -107,7 +107,7 @@ int main(int, char **)
             data = create_random_matrix(rng0.Rand(500), cols);
         }
 
-        if (ImGui::CollapsingHeader("Generate covariance data"))
+        if (ImGui::CollapsingHeader("Covariance data"))
         {
             static float var[2] = {1.0f, 1.0f};
             ImGui::SliderFloat2("x- and y-variance", var, -1.0f, 1.0f);
@@ -117,14 +117,14 @@ int main(int, char **)
             ImGui::SliderFloat2("xy- and yx-covariance", covar, -10.0f, 10.0f);
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
-            if(ImGui::Button("Generate"))
+            if(ImGui::Button("Generate covariance data"))
             {
                 matrix_t cov_mat = {2, 2, {{var[0], covar[0]}, {covar[1], var[1]}} };
                 data = generate_covariance_data(cov_mat);
             }
         }
 
-        if (ImGui::CollapsingHeader("Generate cluster data"))
+        if (ImGui::CollapsingHeader("Cluster data"))
         {
             static int num_clusters = 0;
             ImGui::SliderInt("number of clusters", &num_clusters, 0, 100);
@@ -134,7 +134,7 @@ int main(int, char **)
             ImGui::SliderFloat("sigma", &sigma, 0.0f, 1.0f, "sigma = %.3f");
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
-            if(ImGui::Button("Generate"))
+            if(ImGui::Button("Generate cluster data"))
             {
                 matrix_t centroids = create_random_matrix(num_clusters, 2);
                 auto clusters = generate_clusters(centroids, 50, sigma);
