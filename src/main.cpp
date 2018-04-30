@@ -109,22 +109,22 @@ int main(int, char **)
 
         if (ImGui::CollapsingHeader("Generate covariance data"))
         {
-            static float cov_x = 0;
-            ImGui::SliderFloat("x-covariance", &cov_x, -10.0f, 10.0f, "cov_x = %.3f");
+            static float var[2] = {1.0f, 1.0f};
+            ImGui::SliderFloat2("x- and y-variance", var, -1.0f, 1.0f);
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
-            static float cov_y = 0.1f;
-            ImGui::SliderFloat("y-covariance", &cov_y, -10.0f, 10.0f, "cov_y = %.3f");
+            static float covar[2] = {2.0f, 2.0f};
+            ImGui::SliderFloat2("xy- and yx-covariance", covar, -10.0f, 10.0f);
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
             if(ImGui::Button("Generate"))
             {
-                matrix_t cov_mat = {1, 2, {{cov_x, cov_y}}};
+                matrix_t cov_mat = {2, 2, {{var[0], covar[0]}, {covar[1], var[1]}} };
                 data = generate_covariance_data(cov_mat);
             }
         }
 
-        if (ImGui::CollapsingHeader("Generate clusters"))
+        if (ImGui::CollapsingHeader("Generate cluster data"))
         {
             static int num_clusters = 0;
             ImGui::SliderInt("number of clusters", &num_clusters, 0, 100);
