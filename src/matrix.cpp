@@ -13,8 +13,7 @@ matrix_t make_matrix(int rows, int cols)
 
 void zero_matrix(matrix_t& m)
 {
-    for(int i = 0; i < m.rows; ++i) 
-    {
+    for(int i = 0; i < m.rows; ++i) {
         for(int j = 0; j < m.cols; ++j) m.vals[i][j] = 0.f;
     }
 }
@@ -29,12 +28,29 @@ float variance_matrix(const matrix_t& m)
 
 }
 
-matrix_t create_random_matrix(int rows, int cols)
+// creates random matrix with uniformly distributed numbers
+matrix_t create_random_uniform_matrix(int rows, int cols)
 {
     matrix m = make_matrix(rows, cols);
-    for (int i = 0; i < rows; ++i) {
+    for (int i = 0; i < rows; ++i) 
+    {
         for(int j = 0; j < cols; ++j) {
             m.vals[i][j] = rng1.getFloat();
+        }
+    }
+    return m;
+}
+
+// create random matrix with gaussian distributed numbers
+matrix_t create_random_normal_matrix(int rows, int cols, float mu, float sigma)
+{
+    matrix m = make_matrix(rows, cols);
+    static std::mt19937 gen(std::random_device{}());
+    std::normal_distribution<float> normal_dist(mu, sigma);
+    for(int i = 0; i < m.rows; ++i)
+    {
+        for(int j = 0; j < m.cols; ++j) {
+            m.vals[i][j] = normal_dist(gen);
         }
     }
     return m;
@@ -63,7 +79,7 @@ matrix_t concat_matrix(matrix_t a, matrix_t b)
 int count_fields(std::string line)
 {
     int count = 0;
-    for(char c : line){
+    for(char c : line) {
         if(c == ',') ++count;
     }
     return count+1;
@@ -88,7 +104,8 @@ std::vector<float> parse_row(std::string line)
 matrix_t csv_to_matrix(std::string filename)
 {
     std::ifstream file(filename);
-    if(!file.good()) {
+    if(!file.good()) 
+    {
         fprintf(stderr, "Error: %s\n", filename.c_str());
         exit(0);
     }
@@ -113,8 +130,7 @@ void print_matrix(const matrix_t& m)
     for(int i = 0; i < m.rows; ++i)
     {
         printf("|  ");
-        for(int j = 0; j < m.cols; ++j)
-        {
+        for(int j = 0; j < m.cols; ++j) {
             printf("%15.7f ", m.vals[i][j]);
         }
         printf(" |\n");

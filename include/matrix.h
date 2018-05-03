@@ -18,7 +18,8 @@ typedef struct matrix {
 // create matrix
 matrix_t make_matrix(int rows, int cols);
 void zero_matrix(matrix_t& m);
-matrix_t create_random_matrix(int rows, int cols);
+matrix_t create_random_uniform_matrix(int rows, int cols);
+matrix_t create_random_normal_matrix(int rows, int cols, float mu = 0, float sigma = 1);
 
 void clear_matrix(matrix_t* m);
 matrix_t concat_matrix(matrix_t a, matrix_t b);
