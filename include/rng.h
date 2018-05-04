@@ -5,6 +5,13 @@
 #include <random>
 #include <string>
 
+static inline float randn(float mu = 0, float sigma = -1) 
+{
+    static std::mt19937 gen(std::random_device{}());
+    std::normal_distribution<float> normal_dist(mu, sigma);
+    return normal_dist(gen);
+}
+
 class RNG {
 public:
     RNG(std::pair<int, int> intRange = {0, 100},
