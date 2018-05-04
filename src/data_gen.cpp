@@ -28,8 +28,21 @@ std::vector<matrix_t> generate_clusters(const matrix_t& centroids, const int max
     return clusters;
 }
 
+// currently assumes 2x2 covariance matrix
 matrix_t generate_covariance_data(const matrix_t& sigma)
 {
-    matrix_t result = {};
-    return result;
+    float var_x    = sigma.vals[0][0], covar_xy = sigma.vals[0][1];
+    float covar_yx = sigma.vals[1][0], var_y    = sigma.vals[1][1];
+
+    const int rows = 334;
+    matrix_t x = create_random_normal_matrix(rows, 1, 0, 0.25);
+    for(int i = 0; i < x.rows; ++i) 
+    {
+        float x_new = randn(covar_xy * x.vals[i][0], var_x);
+        float y_new = randn(covar_yx * x.vals[i][0], var_y);
+        x.vals[i] = {x_new, y_new};
+    }
+    x.cols = 2;
+
+    return x;
 }

@@ -6,10 +6,10 @@
 #include <vector>
 #include <random>
 
-static std::mt19937 gen(std::random_device{}());
 
 static inline float normal_dist(float mu, float sigma) 
 {
+    static std::mt19937 gen(std::random_device{}());
     std::normal_distribution<float> distr(mu, sigma);
     return distr(gen);
 }

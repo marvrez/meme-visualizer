@@ -33,8 +33,8 @@ int main(int, char **)
     // Ctrl+W : Set window size
     // Escape : Close window
 
-    const int rows = 2000, cols = 2;
-    static matrix_t data = create_random_matrix(rows, cols);
+    const int rows = 1000, cols = 2;
+    static matrix_t data = create_random_uniform_matrix(rows, cols);
 
     VDBB("k-means clustering");
     {
@@ -51,7 +51,7 @@ int main(int, char **)
             float y = data.vals[i][1];
 
             glColor4f(0.3f, 0.7f, 0.3f, 1.0f);
-            glPoints(8.0f);
+            glPoints(4.0f);
             glVertex2f(x, y);
             glEnd();
 
@@ -59,7 +59,7 @@ int main(int, char **)
             if (vdbIsPointHovered(x, y)) 
             {
                 SetTooltip("Hovered point\nx = %.2f\ny = %.2f", x, y);
-                glPoints(16.0f);
+                glPoints(8.0f);
                 glColor4f(1.0f, 0.9f, 0.2f, 0.5f);
                 glVertex2f(x, y);
                 glEnd();
@@ -92,17 +92,17 @@ int main(int, char **)
         ImGui::SameLine();
         if (ImGui::Button("Random"))
         {
-            data = create_random_matrix(rng0.Rand(500), cols);
+            data = create_random_uniform_matrix(rng0.Rand(rows), cols);
         }
 
         if (ImGui::CollapsingHeader("Covariance data"))
         {
-            static float var[2] = {1.0f, 1.0f};
-            ImGui::SliderFloat2("x- and y-variance", var, -1.0f, 1.0f);
+            static float var[2] = {0.2f, 0.2f};
+            ImGui::SliderFloat2("x- and y-variance", var, -0.5f, 0.5f);
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
-            static float covar[2] = {2.0f, 2.0f};
-            ImGui::SliderFloat2("xy- and yx-covariance", covar, -10.0f, 10.0f);
+            static float covar[2] = {1.0f, 1.0f};
+            ImGui::SliderFloat2("xy- and yx-covariance", covar, -5.0f, 5.0f);
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
             if(ImGui::Button("Generate covariance data"))
@@ -124,7 +124,7 @@ int main(int, char **)
 
             if(ImGui::Button("Generate cluster data"))
             {
-                matrix_t centroids = create_random_matrix(num_clusters, 2);
+                matrix_t centroids = create_random_uniform_matrix(num_clusters, 2);
                 auto clusters = generate_clusters(centroids, 50, sigma);
                 clear_matrix(&data);
                 for(const auto& cluster : clusters) data = concat_matrix(data, cluster);
