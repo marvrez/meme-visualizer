@@ -1,6 +1,7 @@
 #include "vdb/vdb.h"
 #include "matrix.h"
 #include "data_gen.h"
+#include "kmeans.h"
 
 #include <vector>
 #include <cstdio>
@@ -40,6 +41,7 @@ int main(int, char **)
     {
         vdb2D(-1, +1, -1, +1);
 
+        // Draw grid
         glLines(5.0f);
         glColor4f(1,1,1,0.5f);
         vdbGridXY(-1, +1, -1, +1, 2);
@@ -50,11 +52,13 @@ int main(int, char **)
             float x = data.vals[i][0];
             float y = data.vals[i][1];
 
+            // Draw the data points
             glColor4f(0.3f, 0.7f, 0.3f, 1.0f);
             glPoints(4.0f);
             glVertex2f(x, y);
             glEnd();
 
+            // Draw the highlight of the hovered data point
             glColor3f(0.3f, 0.7f, 0.3f);
             if (vdbIsPointHovered(x, y)) 
             {
@@ -127,7 +131,24 @@ int main(int, char **)
                 matrix_t centroids = create_random_uniform_matrix(num_clusters, 2);
                 auto clusters = generate_clusters(centroids, 50, sigma);
                 clear_matrix(&data);
+                data.cols = 2;
                 for(const auto& cluster : clusters) data = concat_matrix(data, cluster);
+            }
+        }
+
+        if (ImGui::CollapsingHeader("K-means"))
+        {
+            static int k = 2;
+            ImGui::SliderInt("k", &k, 0, 7);
+            ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
+
+            if(ImGui::Button("Run K-means"))
+            {
+                matrix_t centers = make_matrix(k, 2);
+                random_centers(data, &centers);
+                print_matrix(centers);
+                data.rows = k;
+                data = centers;
             }
         }
     }

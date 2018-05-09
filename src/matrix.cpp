@@ -11,10 +11,10 @@ matrix_t make_matrix(int rows, int cols)
     return m;
 }
 
-void zero_matrix(matrix_t& m)
+void zero_matrix(matrix_t* m)
 {
-    for(int i = 0; i < m.rows; ++i) {
-        for(int j = 0; j < m.cols; ++j) m.vals[i][j] = 0.f;
+    for(int i = 0; i < m->rows; ++i) {
+        for(int j = 0; j < m->cols; ++j) m->vals[i][j] = 0.f;
     }
 }
 

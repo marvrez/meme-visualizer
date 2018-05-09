@@ -17,7 +17,7 @@ typedef struct matrix {
 
 // create matrix
 matrix_t make_matrix(int rows, int cols);
-void zero_matrix(matrix_t& m);
+void zero_matrix(matrix_t* m);
 matrix_t create_random_uniform_matrix(int rows, int cols);
 matrix_t create_random_normal_matrix(int rows, int cols, float mu = 0, float sigma = 1);
 

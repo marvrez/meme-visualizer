@@ -6,6 +6,7 @@
 
 void random_centers(const matrix_t& data, matrix_t* centers)
 {
+    printf("data: %d, centers: %d\n", data.cols, centers->cols);
     assert(centers->cols == data.cols);
 
     // create index array and shuffle it
@@ -22,5 +23,5 @@ void random_centers(const matrix_t& data, matrix_t* centers)
 
 void smart_centers(const matrix_t& data, matrix_t* centers)
 {
-
+    //TODO
 }
