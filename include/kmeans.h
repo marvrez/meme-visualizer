@@ -16,8 +16,6 @@ typedef enum {
     IOU
 } kmeans_metric_t;
 
-int* sample(int n);
-
 // initialization of centroids
 void random_centers(const matrix_t& data, matrix_t* centers);
 void smart_centers(const matrix_t& data, matrix_t* centers);
