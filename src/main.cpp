@@ -17,6 +17,16 @@ typedef struct {
     };
 } color_t;
 
+typedef enum {
+    KMEANS_CLUSTER,
+    KMEANS_CENTROID,
+    PLAIN_DATA
+} data_type_t;
+
+static std::map<std::vector<float>, data_type_t> data_types;
+static std::map<std::vector<float>, color_t> centroid_colors;
+constexpr float RADIUS = 4.0f, HIGHLIGHT_RADIUS = RADIUS * 2, X_RADIUS = 0.01f, LINE_THICKNESS = 2.5f;
+
 std::vector<color_t> get_colors(const int n) 
 {
     std::vector<color_t> colors;
@@ -26,7 +36,7 @@ std::vector<color_t> get_colors(const int n)
     {
         const float h = std::fmod(rng0.getFloat() + golden_ratio_conjugate,
                                   1.f);
-        //colors.push_back(HSV2RGB(h, s, v));
+        //colors.push_back(hsv_to_rgb(h, s, v));
     }
     return colors;
 }
@@ -41,18 +51,36 @@ void draw_line(float x1, float y1, float x2, float y2, color_t c)
 void draw_x(float x, float y, float radius, color_t c) 
 {
     glColor4fv(c.data);
-    glLines(10.f);
+    glLines(LINE_THICKNESS);
     draw_line(x-radius, y-radius, x+radius, y+radius, c);
     draw_line(x+radius, y-radius, x-radius, y+radius, c);
     glEnd();
 }
 
-void draw_data_point(float x, float y, float r, color_t c)
+void draw_point(float x, float y, float r, color_t c)
 {
     glColor4fv(c.data);
     glPoints(r);
     glVertex2f(x, y);
     glEnd();
+}
+
+void plot_data_point(const std::vector<float>& data_point)
+{
+    float x = data_point[0], y = data_point[1];
+    auto it = data_types.find(data_point);
+    data_type_t type = it != data_types.end() ? it->second : PLAIN_DATA;
+
+    switch(type)
+    {
+        case KMEANS_CENTROID:
+            draw_x(x,y, X_RADIUS, {1.0f, 0.5f, 0.2f, 1.0f});//centroid_colors[data_point]);
+            break;
+        case PLAIN_DATA:
+        default:
+            draw_point(x, y, RADIUS, {0.3f, 0.7f, 0.3f, 1.0f});
+    }
+
 }
 
 int main(int, char **) 
@@ -68,7 +96,6 @@ int main(int, char **)
     const int rows = 1000, cols = 2;
     static matrix_t data = create_random_uniform_matrix(rows, cols);
     static matrix_t centroids = make_matrix(0,0);
-    static std::map<std::vector<float>, color_t> centroid_color;
 
     VDBB("k-means clustering");
     {
@@ -82,18 +109,15 @@ int main(int, char **)
 
         for (int i = 0; i < data.rows; i++)
         {
-            float x = data.vals[i][0];
-            float y = data.vals[i][1];
-
-            // Draw the data points
-            draw_data_point(x, y, 4.0f, {0.3f, 0.7f, 0.3f, 1.0f});
+            std::vector<float> data_point = data.vals[i];
+            float x = data_point[0], y = data_point[1];
+            plot_data_point(data_point);
 
             // Draw the highlight of the hovered data point
-            glColor3f(0.3f, 0.7f, 0.3f);
             if (vdbIsPointHovered(x, y)) 
             {
                 SetTooltip("Hovered point\nx = %.2f\ny = %.2f", x, y);
-                draw_data_point(x, y, 8.0f, {1.0f, 0.9f, 0.2f, 0.5f});
+                draw_point(x, y, HIGHLIGHT_RADIUS, {1.0f, 0.9f, 0.2f, 0.5f});
             }
         }
 
@@ -124,7 +148,6 @@ int main(int, char **)
         if (ImGui::Button("Random"))
         {
             data = create_random_uniform_matrix(rng0.Rand(rows), cols);
-            clear_matrix(&centroids);
         }
 
         if (ImGui::CollapsingHeader("Covariance data"))
@@ -141,8 +164,6 @@ int main(int, char **)
             {
                 matrix_t cov_mat = {2, 2, {{var[0], covar[0]}, {covar[1], var[1]}} };
                 data = generate_covariance_data(cov_mat);
-
-                clear_matrix(&centroids);
             }
         }
 
@@ -163,9 +184,6 @@ int main(int, char **)
                 clear_matrix(&data);
                 data.cols = 2;
                 for(const auto& cluster : clusters) data = concat_matrix(data, cluster);
-
-                clear_matrix(&centroids); // centroids is only calculated for kmeans
-
             }
         }
 
@@ -180,16 +198,20 @@ int main(int, char **)
 
             if(ImGui::Button("Run K-means"))
             {
-                matrix_t centers = make_matrix(k, 2);
-                if(use_smart_centers) smart_centers(data, &centers);
-                else random_centers(data, &centers);
+                data_types.clear();
+                centroid_colors.clear();
 
-                centroids.rows = k, centroids.cols = 2;
-                centroids = centers;
+                matrix_t centroids = make_matrix(k, 2);
+                if(use_smart_centers) smart_centers(data, &centroids);
+                else random_centers(data, &centroids);
 
                 int i = 0;
                 auto colors = get_colors(k);
-                for(auto centroid : centroids.vals) centroid_color[centroid] = colors[i++];
+                for(auto centroid : centroids.vals)
+                {
+                    //centroid_colors[centroid] = colors[i++];
+                    data_types[centroid] = KMEANS_CENTROID;
+                }
             }
         }
     }
