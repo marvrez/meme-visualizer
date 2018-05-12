@@ -23,7 +23,6 @@ typedef enum {
     PLAIN_DATA
 } data_type_t;
 
-static float colors[6][3] = { {1,0,1}, {0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0} };
 static std::map<std::vector<float>, data_type_t> data_types;
 static std::map<std::vector<float>, color_t> centroid_colors, cluster_colors;
 constexpr float RADIUS = 4.0f, HIGHLIGHT_RADIUS = RADIUS * 2, X_RADIUS = 0.01f, LINE_THICKNESS = 2.5f;
