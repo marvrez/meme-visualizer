@@ -23,20 +23,60 @@ typedef enum {
     PLAIN_DATA
 } data_type_t;
 
+static float colors[6][3] = { {1,0,1}, {0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0} };
 static std::map<std::vector<float>, data_type_t> data_types;
-static std::map<std::vector<float>, color_t> centroid_colors;
+static std::map<std::vector<float>, color_t> centroid_colors, cluster_colors;
 constexpr float RADIUS = 4.0f, HIGHLIGHT_RADIUS = RADIUS * 2, X_RADIUS = 0.01f, LINE_THICKNESS = 2.5f;
 
+color_t hsv_to_rgb(float h, float s, float v)
+{
+    float r, g, b, a = 1.0f;
+    float f, p, q, t;
+    if (s == 0) {
+        r = g = b = v;
+    } 
+    else {
+        int index = floor(h * 6);
+        f = h * 6 - index;
+        p = v*(1-s);
+        q = v*(1-s*f);
+        t = v*(1-s*(1-f));
+        switch (index)
+        {
+            case 0:
+                r = v; g = t; b = p;
+                break;
+            case 1:
+                r = q; g = v; b = p;
+                break;
+            case 2:
+                r = p; g = v; b = t;
+                break;
+            case 3:
+                r = p; g = q; b = v;
+                break;
+            case 4:
+                r = t; g = p; b = v;
+                break;
+            default:
+                r = v; g = p; b = q;
+                break;
+        }
+    }
+    return {r, g, b, a};
+}
+
+// https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
 std::vector<color_t> get_colors(const int n) 
 {
     std::vector<color_t> colors;
-    const float golden_ratio_conjugate = 0.618033988749895;
-    const float s = 0.5, v = 0.99;
+    const float golden_ratio_conjugate = 0.618033988749895f;
+    const float s = 0.7f, v = 0.99f;
     for (int i = 0; i < n; ++i) 
     {
         const float h = std::fmod(rng0.getFloat() + golden_ratio_conjugate,
-                                  1.f);
-        //colors.push_back(hsv_to_rgb(h, s, v));
+                                  1.0f);
+        colors.push_back(hsv_to_rgb(h, s, v));
     }
     return colors;
 }
@@ -74,7 +114,10 @@ void plot_data_point(const std::vector<float>& data_point)
     switch(type)
     {
         case KMEANS_CENTROID:
-            draw_x(x,y, X_RADIUS, {1.0f, 0.5f, 0.2f, 1.0f});//centroid_colors[data_point]);
+            draw_x(x, y, X_RADIUS, centroid_colors[data_point]); //{1.0f, 0.5f, 0.2f, 1.0f});
+            break;
+        case KMEANS_CLUSTER:
+            //draw_point(x, y, RADIUS, cluster_colors[data_point]); 
             break;
         case PLAIN_DATA:
         default:
@@ -200,6 +243,7 @@ int main(int, char **)
             {
                 data_types.clear();
                 centroid_colors.clear();
+                cluster_colors.clear();
 
                 matrix_t centroids = make_matrix(k, 2);
                 if(use_smart_centers) smart_centers(data, &centroids);
@@ -209,7 +253,7 @@ int main(int, char **)
                 auto colors = get_colors(k);
                 for(auto centroid : centroids.vals)
                 {
-                    //centroid_colors[centroid] = colors[i++];
+                    centroid_colors[centroid] = colors[i++];
                     data_types[centroid] = KMEANS_CENTROID;
                 }
             }
