@@ -8,7 +8,7 @@ void random_centers(const matrix_t& data, matrix_t* centers)
 {
     assert(centers->cols == data.cols);
 
-    // create index array and shuffle it
+    // get index of arrays and shuffle them
     std::vector<int> index_array(data.rows);
     for(int i = 0; i < index_array.size(); ++i) {
         index_array[i] = i;
@@ -23,4 +23,32 @@ void random_centers(const matrix_t& data, matrix_t* centers)
 void smart_centers(const matrix_t& data, matrix_t* centers)
 {
     //TODO
+}
+
+float dist(std::vector<float> x, std::vector<float> y, kmeans_metric_t metric)
+{
+    assert(x.size() == y.size());
+    const int n = x.size();
+
+    float dist = 0;
+    switch (metric)
+    {
+        case IOU: 
+            // assumes that first index is box width and second index is box height
+            float min_w = std::min(x[0], y[0]), min_h = std::min(x[1], y[1]);
+            float box_intersect = min_w * min_h;
+            float box_union = (x[0] * x[1] + y[0] * y[1]) - box_intersect;
+            float iou = box_intersect / box_union;
+            dist = 1 - iou;
+            break;
+        case L1:
+            for(int i = 0; i < n; ++i) dist += fabs((x[i]-y[i]));
+            break;
+        case L2:
+            for(int i = 0; i < n; ++i) dist += (x[i]-y[i])*(x[i]-y[i]);
+            dist = sqrt(dist);
+            break;
+    }
+
+    return dist;
 }

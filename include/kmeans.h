@@ -21,7 +21,8 @@ void random_centers(const matrix_t& data, matrix_t* centers);
 void smart_centers(const matrix_t& data, matrix_t* centers);
 
 // return distance to closest centroid measured in given metric
-float dist(std::vector<int> x, std::vector<int> y, kmeans_metric_t metric = L2);
+// x is data point(box for IoU), y is the centroid(anchor for IoU)
+float dist(std::vector<float> x, std::vector<float> y, kmeans_metric_t metric = L2);
 
 // performs the "assignment" steps and assigns each cluster with its nearest centroid 
 // returns true if convergence has occurred
