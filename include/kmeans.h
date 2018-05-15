@@ -29,7 +29,7 @@ std::pair<int,float> get_closest_center(const std::vector<float>& data, const ma
 
 // performs the "assignment" steps and assigns each cluster with its nearest centroid 
 // returns true if convergence has occurred
-bool kmeans_expectation(matrix_t data, model_t* model);
+bool kmeans_expectation(matrix_t data, model_t* model, kmeans_metric_t metric = L2);
 
 // performs the "update" step of kmeans and assigns new centroids to each cluster
 void kmeans_maximization(matrix_t data, model_t* model);
