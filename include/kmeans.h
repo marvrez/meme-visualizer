@@ -24,6 +24,9 @@ void smart_centers(const matrix_t& data, matrix_t* centers);
 // x is data point(box for IoU), y is the centroid(anchor for IoU)
 float dist(std::vector<float> x, std::vector<float> y, kmeans_metric_t metric = L2);
 
+// Returns index of the closest center and the distance from given data to that center
+std::pair<int,float> get_closest_center(const std::vector<float>& data, const matrix_t& centers, kmeans_metric_t metric = L2);
+
 // performs the "assignment" steps and assigns each cluster with its nearest centroid 
 // returns true if convergence has occurred
 bool kmeans_expectation(matrix_t data, model_t* model);
