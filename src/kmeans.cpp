@@ -83,3 +83,22 @@ bool kmeans_expectation(matrix_t data, model_t* model, kmeans_metric_t metric)
     }
     return converged;
 }
+
+void kmeans_maximization(matrix_t data, model_t* model)
+{
+    std::vector<int> counts(model->centers.rows, 0);
+    zero_matrix(&model->centers);
+    for(int i = 0; i < data.rows; ++i) {
+        counts[model->assignments[i]]++;
+        for(int j = 0; j < data.cols; ++j){
+            model->centers.vals[model->assignments[i]][j] += data.vals[i][j];
+        }
+    }
+    for(int i = 0; i < model->centers.rows; ++i) { 
+        if(counts[i]) {
+            for(int j = 0; j < model->centers.cols; ++j) {
+                model->centers.vals[i][j] /= counts[i];
+            }
+        }
+    }
+}
