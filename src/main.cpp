@@ -24,7 +24,7 @@ typedef enum {
 } data_type_t;
 
 static std::map<std::vector<float>, data_type_t> data_types;
-static std::map<std::vector<float>, color_t> centroid_colors, cluster_colors;
+static std::map<std::vector<float>, color_t> centroid_colors, cluster_data_colors;
 constexpr float RADIUS = 4.0f, HIGHLIGHT_RADIUS = RADIUS * 2, X_RADIUS = 0.01f, LINE_THICKNESS = 2.5f;
 
 color_t hsv_to_rgb(float h, float s, float v)
@@ -71,8 +71,7 @@ std::vector<color_t> get_colors(const int n)
     std::vector<color_t> colors;
     const float golden_ratio_conjugate = 0.618033988749895f;
     const float s = 0.7f, v = 0.99f;
-    for (int i = 0; i < n; ++i) 
-    {
+    for (int i = 0; i < n; ++i) {
         const float h = std::fmod(rng0.getFloat() + golden_ratio_conjugate,
                                   1.0f);
         colors.push_back(hsv_to_rgb(h, s, v));
@@ -112,17 +111,16 @@ void plot_data_point(const std::vector<float>& data_point)
 
     switch(type)
     {
-        case KMEANS_CENTROID:
+        case KMEANS_CENTROID: 
             draw_x(x, y, X_RADIUS, centroid_colors[data_point]); //{1.0f, 0.5f, 0.2f, 1.0f});
             break;
         case KMEANS_CLUSTER:
-            //draw_point(x, y, RADIUS, cluster_colors[data_point]); 
+            draw_point(x, y, RADIUS, cluster_data_colors[data_point]); 
             break;
         case PLAIN_DATA:
         default:
             draw_point(x, y, RADIUS, {0.3f, 0.7f, 0.3f, 1.0f});
     }
-
 }
 
 int main(int, char **) 
@@ -149,16 +147,26 @@ int main(int, char **)
         vdbGridXY(-1, +1, -1, +1, 2);
         glEnd();
 
-        for (int i = 0; i < data.rows; i++)
-        {
+        for (int i = 0; i < data.rows; i++) {
             std::vector<float> data_point = data.vals[i];
             float x = data_point[0], y = data_point[1];
             plot_data_point(data_point);
 
             // Draw the highlight of the hovered data point
-            if (vdbIsPointHovered(x, y)) 
-            {
+            if (vdbIsPointHovered(x, y)) {
                 SetTooltip("Hovered point\nx = %.2f\ny = %.2f", x, y);
+                draw_point(x, y, HIGHLIGHT_RADIUS, {1.0f, 0.9f, 0.2f, 0.5f});
+            }
+        }
+
+        for(int i = 0; i < centroids.rows; ++i) {
+            std::vector<float> centroid = centroids.vals[i];
+            float x = centroid[0], y = centroid[1];
+            plot_data_point(centroid);
+
+            // Draw the highlight of the hovered data point
+            if (vdbIsPointHovered(x, y)) {
+                SetTooltip("Hovered centroid \nx = %.2f\ny = %.2f", x, y);
                 draw_point(x, y, HIGHLIGHT_RADIUS, {1.0f, 0.9f, 0.2f, 0.5f});
             }
         }
@@ -238,22 +246,30 @@ int main(int, char **)
             static bool use_smart_centers = false;
             ImGui::Checkbox("K-means++", &use_smart_centers);
 
+            // choose metrics
+            static int metric = L2;
+            ImGui::RadioButton("L1",  &metric, L1); ImGui::SameLine();
+            ImGui::RadioButton("L2",  &metric, L2); ImGui::SameLine();
+            ImGui::RadioButton("IOU", &metric, IOU);
+
             if(ImGui::Button("Run K-means"))
             {
                 data_types.clear();
                 centroid_colors.clear();
-                cluster_colors.clear();
+                cluster_data_colors.clear();
 
-                matrix_t centroids = make_matrix(k, 2);
-                if(use_smart_centers) smart_centers(data, &centroids);
-                else random_centers(data, &centroids);
+                model_t model = kmeans(data, k, (kmeans_metric_t)metric, use_smart_centers);
+                centroids = model.centers;
 
-                int i = 0;
                 auto colors = get_colors(k);
-                for(auto centroid : centroids.vals)
-                {
-                    centroid_colors[centroid] = colors[i++];
-                    data_types[centroid] = KMEANS_CENTROID;
+                for(int i = 0; i < centroids.vals.size(); ++i) {
+                    centroid_colors[centroids.vals[i]] = colors[i];
+                    data_types[centroids.vals[i]] = KMEANS_CENTROID;
+                }
+
+                for(int i = 0; i < model.assignments.size(); ++i) {
+                    cluster_data_colors[data.vals[i]] = colors[model.assignments[i]];
+                    data_types[data.vals[i]] = KMEANS_CLUSTER;
                 }
             }
         }

@@ -102,3 +102,20 @@ void kmeans_maximization(matrix_t data, model_t* model)
         }
     }
 }
+
+model_t kmeans(matrix_t data, int k, kmeans_metric_t metric, bool use_smart_centers)
+{
+    matrix_t centers = make_matrix(k, data.cols);
+    std::vector<int> assignments(data.rows, 0);
+    model_t model = {assignments, centers};
+
+    if(use_smart_centers) smart_centers(data, &model.centers);
+    else random_centers(data, &model.centers);
+
+    if(k == 1) kmeans_maximization(data, &model);
+    while(!kmeans_expectation(data, &model, metric)) {
+        kmeans_maximization(data, &model);
+    }
+
+    return model;
+}
