@@ -10,7 +10,7 @@
 
 #include "rng.h"
 
-typedef struct matrix {
+typedef struct {
     int rows, cols;
     std::vector<std::vector<float> > vals;
 } matrix_t;

@@ -31,7 +31,7 @@ float variance_matrix(const matrix_t& m)
 // creates random matrix with uniformly distributed numbers
 matrix_t create_random_uniform_matrix(int rows, int cols)
 {
-    matrix m = make_matrix(rows, cols);
+    matrix_t m = make_matrix(rows, cols);
     for (int i = 0; i < rows; ++i) 
     {
         for(int j = 0; j < cols; ++j) {
@@ -44,7 +44,7 @@ matrix_t create_random_uniform_matrix(int rows, int cols)
 // create random matrix with gaussian distributed numbers
 matrix_t create_random_normal_matrix(int rows, int cols, float mu, float sigma)
 {
-    matrix m = make_matrix(rows, cols);
+    matrix_t m = make_matrix(rows, cols);
     static std::mt19937 gen(std::random_device{}());
     std::normal_distribution<float> normal_dist(mu, sigma);
     for(int i = 0; i < m.rows; ++i)
@@ -66,7 +66,7 @@ void clear_matrix(matrix_t* m)
 matrix_t concat_matrix(matrix_t a, matrix_t b)
 {
     int count = 0;
-    matrix m = make_matrix(a.rows + b.rows, a.cols);
+    matrix_t m = make_matrix(a.rows + b.rows, a.cols);
     for(auto val : a.vals) {
         m.vals[count++] = val;
     }
