@@ -10,6 +10,7 @@ typedef struct {
 } image_t;
 
 image_t make_image(int w, int h, int c);
+void clear_image(image_t* m);
 
 void set_pixel(image_t* m, int x, int y, int c, float val);
 

@@ -6,6 +6,11 @@ image_t make_image(int w, int h, int c)
     return out;
 }
 
+void clear_image(image_t* m)
+{
+    m->data = std::vector<float>(m->w*m->h*m->c, 0);
+}
+
 void set_pixel(image_t* m, int x, int y, int c, float val)
 {
     if (x < 0 || y < 0 || c < 0 || x >= m->w || y >= m->h || c >= m->c) return;
