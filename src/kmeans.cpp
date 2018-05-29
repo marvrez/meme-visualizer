@@ -1,7 +1,9 @@
 #include "kmeans.h"
+#include "rng.h"
 
 #include <cassert>
 #include <array>
+#include <cstdio>
 #include <algorithm>
 
 void random_centers(const matrix_t& data, matrix_t* centers)
@@ -20,9 +22,32 @@ void random_centers(const matrix_t& data, matrix_t* centers)
     }
 }
 
-void smart_centers(const matrix_t& data, matrix_t* centers)
+void smart_centers(const matrix_t& data, matrix_t* centers, kmeans_metric_t metric)
 {
-    //TODO
+    assert(data.cols == centers->cols);
+
+    RNG rng(0, data.rows);
+    centers->vals[0] = data.vals[rng.getInt()];
+
+    std::vector<float> closest_dist_to_centroid(data.rows, 0.f);
+    int num_centers = centers->rows;
+    for (int i = 1; i < num_centers; ++i) {
+        float sum = 0;
+        centers->rows = i;
+        for (int j = 0; j < data.rows; ++j) {
+            closest_dist_to_centroid[j] = get_closest_center(data.vals[j], *centers, metric).second;
+            sum += closest_dist_to_centroid[j];
+        }
+        float r = sum * rng0.getFloat();
+        for (int j = 0; j < data.rows; ++j) {
+            r -= closest_dist_to_centroid[j];
+            if(r <= 0) {
+                centers->vals[i] = data.vals[j];
+                break;
+            }
+        }
+    }
+    centers->rows = num_centers;
 }
 
 float dist(std::vector<float> x, std::vector<float> y, kmeans_metric_t metric)
@@ -114,7 +139,7 @@ model_t kmeans(matrix_t data, int k, kmeans_metric_t metric, bool use_smart_cent
     std::vector<int> assignments(data.rows, 0);
     model_t model = {assignments, centers};
 
-    if(use_smart_centers) smart_centers(data, &model.centers);
+    if(use_smart_centers) smart_centers(data, &model.centers, metric);
     else random_centers(data, &model.centers);
 
     if(k == 1) kmeans_maximization(data, &model);

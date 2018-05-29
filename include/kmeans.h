@@ -18,7 +18,7 @@ typedef enum {
 
 // initialization of centroids
 void random_centers(const matrix_t& data, matrix_t* centers);
-void smart_centers(const matrix_t& data, matrix_t* centers);
+void smart_centers(const matrix_t& data, matrix_t* centers, kmeans_metric_t metric);
 
 // return distance to closest centroid measured in given metric
 // x is data point(box for IoU), y is the centroid(anchor for IoU)
