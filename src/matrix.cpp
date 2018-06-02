@@ -1,6 +1,7 @@
 #include "matrix.h"
 
 #include <cstdio>
+#include <cassert>
 
 matrix_t make_matrix(int rows, int cols)
 {
@@ -8,6 +9,16 @@ matrix_t make_matrix(int rows, int cols)
     m.rows = rows;
     m.cols = cols;
     m.vals = std::vector<std::vector<float> >(m.rows, std::vector<float>(m.cols));
+    return m;
+}
+
+matrix_t make_identity(int rows, int cols)
+{
+    assert(rows == cols);
+    matrix_t m = make_matrix(rows, cols);
+    for(int i = 0; i < rows; ++i) {
+        m.vals[i][i] = 1;
+    }
     return m;
 }
 
@@ -32,8 +43,7 @@ float variance_matrix(const matrix_t& m)
 matrix_t create_random_uniform_matrix(int rows, int cols)
 {
     matrix_t m = make_matrix(rows, cols);
-    for (int i = 0; i < rows; ++i) 
-    {
+    for (int i = 0; i < rows; ++i) {
         for(int j = 0; j < cols; ++j) {
             m.vals[i][j] = rng1.getFloat();
         }
@@ -47,8 +57,7 @@ matrix_t create_random_normal_matrix(int rows, int cols, float mu, float sigma)
     matrix_t m = make_matrix(rows, cols);
     static std::mt19937 gen(std::random_device{}());
     std::normal_distribution<float> normal_dist(mu, sigma);
-    for(int i = 0; i < m.rows; ++i)
-    {
+    for(int i = 0; i < m.rows; ++i) {
         for(int j = 0; j < m.cols; ++j) {
             m.vals[i][j] = normal_dist(gen);
         }
@@ -82,7 +91,7 @@ int count_fields(std::string line)
     for(char c : line) {
         if(c == ',') ++count;
     }
-    return count+1;
+    return count + 1;
 }
 
 std::vector<float> parse_row(std::string line)
@@ -90,8 +99,7 @@ std::vector<float> parse_row(std::string line)
     std::vector<float> values;
     std::stringstream ss(line);
 
-    for(float val; ss >> val; )
-    {
+    for(float val; ss >> val; ) {
         values.push_back(val);
 
         if (ss.peek() == ',')
@@ -104,8 +112,7 @@ std::vector<float> parse_row(std::string line)
 matrix_t csv_to_matrix(std::string filename)
 {
     std::ifstream file(filename);
-    if(!file.good()) 
-    {
+    if(!file.good()) {
         fprintf(stderr, "Error: %s\n", filename.c_str());
         exit(0);
     }
@@ -127,8 +134,7 @@ void print_matrix(const matrix_t& m)
     for(int j = 0; j < 16*m.cols-1; ++j) printf(" ");
     printf("  |\n");
 
-    for(int i = 0; i < m.rows; ++i)
-    {
+    for(int i = 0; i < m.rows; ++i) {
         printf("|  ");
         for(int j = 0; j < m.cols; ++j) {
             printf("%15.7f ", m.vals[i][j]);
@@ -138,4 +144,77 @@ void print_matrix(const matrix_t& m)
     printf("|__");
     for(int j = 0; j < 16*m.cols-1; ++j) printf(" ");
     printf("__|\n");
+}
+
+matrix_t operator+(const matrix_t& a, const matrix_t& b)
+{
+    assert(a.cols == b.cols);
+    assert(a.rows == b.rows);
+    matrix_t p = make_matrix(a.rows, a.cols);
+    for(int i = 0; i < p.rows; ++i) {
+        for(int j = 0; j < p.cols; ++j) {
+            p.vals[i][j] = a.vals[i][j] + b.vals[i][j];
+        }
+    }
+    return p;
+}
+
+matrix_t operator-(const matrix_t& a, const matrix_t& b)
+{
+    assert(a.cols == b.cols);
+    assert(a.rows == b.rows);
+    matrix_t result = make_matrix(a.rows, a.cols);
+    for(int i = 0; i < result.rows; ++i) {
+        for(int j = 0; j < result.cols; ++j) {
+            result.vals[i][j] = a.vals[i][j] - b.vals[i][j];
+        }
+    }
+    return result;
+}
+
+matrix_t operator*(const matrix_t& a, const matrix_t& b)
+{
+    assert(a.cols == b.rows);
+    matrix_t result = make_matrix(a.rows, b.cols);
+    for(int i = 0; i < result.rows; ++i) {
+        for(int j = 0; j < result.cols; ++j) {
+            for(int k = 0; k < a.cols; ++k) {
+                result.vals[i][j] += a.vals[i][k] * b.vals[k][j];
+            }
+        }
+    }
+    return result;
+}
+
+matrix_t transpose_matrix(const matrix_t& m)
+{
+    matrix_t t = make_matrix(m.rows, m.cols);
+    for(int i = 0; i < t.rows; ++i) {
+        for(int j = 0; j < t.cols; ++j) {
+            t.vals[i][j] = m.vals[j][i];
+        }
+    }
+    return t;
+}
+
+matrix_t matrix_elmult_matrix(const matrix_t& a, const matrix_t& b)
+{
+    assert(a.cols == b.cols);
+    assert(a.rows == b.rows);
+    matrix_t result = make_matrix(a.rows, a.cols);
+    for(int i = 0; i < result.rows; ++i){
+        for(int j = 0; j < result.cols; ++j){
+            result.vals[i][j] = a.vals[i][j] * b.vals[i][j];
+        }
+    }
+    return result;
+}
+
+void scale_matrix(matrix_t* m, float scale_val)
+{
+    for(int i = 0; i < m->rows; ++i){
+        for(int j = 0 ; j < m->cols; ++j){
+            m->vals[i][j] *= scale_val;
+        }
+    }
 }

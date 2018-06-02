@@ -17,6 +17,7 @@ typedef struct {
 
 // create matrix
 matrix_t make_matrix(int rows, int cols);
+matrix_t make_identity(int rows, int cols);
 void zero_matrix(matrix_t* m);
 matrix_t create_random_uniform_matrix(int rows, int cols);
 matrix_t create_random_normal_matrix(int rows, int cols, float mu = 0, float sigma = 1);
@@ -33,5 +34,13 @@ int count_fields(std::string line);
 std::vector<float> parse_row(std::string line);
 matrix_t csv_to_matrix(std::string filename);
 void print_matrix(const matrix_t& m);
+
+// matrix operators
+matrix_t operator+(const matrix_t& a, const matrix_t& b);
+matrix_t operator-(const matrix_t& a, const matrix_t& b);
+matrix_t operator*(const matrix_t& a, const matrix_t& b);
+matrix_t transpose_matrix(const matrix_t& m);
+matrix_t elmult_matrix(const matrix_t& a, const matrix_t& b);
+void scale_matrix(matrix_t* m, float scale_val);
 
 #endif
