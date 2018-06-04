@@ -1,4 +1,6 @@
 #include "vdb/vdb.h"
+#include "image.h"
+#include "color_utils.h"
 #include "matrix.h"
 #include "data_gen.h"
 #include "kmeans.h"
@@ -8,14 +10,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
+#include <ctime>
 #include <map>
-
-typedef struct {
-    union {
-        float data[4];
-        struct { float r, g, b, a; };
-    };
-} color_t;
 
 typedef enum {
     KMEANS_CLUSTER,
@@ -26,58 +22,6 @@ typedef enum {
 static std::map<std::vector<float>, data_type_t> data_types;
 static std::map<std::vector<float>, color_t> centroid_colors, cluster_data_colors;
 constexpr float RADIUS = 4.0f, HIGHLIGHT_RADIUS = RADIUS * 2, X_RADIUS = 0.01f, LINE_THICKNESS = 2.5f;
-
-color_t hsv_to_rgb(float h, float s, float v)
-{
-    float r, g, b, a = 1.0f;
-    float f, p, q, t;
-    if (s == 0) {
-        r = g = b = v;
-    } 
-    else {
-        int index = floor(h * 6);
-        f = h * 6 - index;
-        p = v*(1-s);
-        q = v*(1-s*f);
-        t = v*(1-s*(1-f));
-        switch (index)
-        {
-            case 0:
-                r = v; g = t; b = p;
-                break;
-            case 1:
-                r = q; g = v; b = p;
-                break;
-            case 2:
-                r = p; g = v; b = t;
-                break;
-            case 3:
-                r = p; g = q; b = v;
-                break;
-            case 4:
-                r = t; g = p; b = v;
-                break;
-            default:
-                r = v; g = p; b = q;
-                break;
-        }
-    }
-    return {r, g, b, a};
-}
-
-// https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/
-std::vector<color_t> get_colors(const int n) 
-{
-    std::vector<color_t> colors;
-    const float golden_ratio_conjugate = 0.618033988749895f;
-    const float s = 0.7f, v = 0.99f;
-    for (int i = 0; i < n; ++i) {
-        const float h = std::fmod(rng0.getFloat() + golden_ratio_conjugate,
-                                  1.0f);
-        colors.push_back(hsv_to_rgb(h, s, v));
-    }
-    return colors;
-}
 
 void draw_line(float x1, float y1, float x2, float y2, color_t c) 
 {
@@ -132,10 +76,13 @@ int main(int, char **)
     // Ctrl+R : Show ruler
     // Ctrl+W : Set window size
     // Escape : Close window
+    
+    srand(time(0));
 
     const int rows = 1000, cols = 2;
     static matrix_t data = create_random_uniform_matrix(rows, cols);
-    static matrix_t centroids = make_matrix(0,0);
+    static matrix_t centroids = make_matrix(0, 0);
+    static image_t image = make_image(100, 100, 3);
 
     VDBB("k-means clustering");
     {
@@ -257,14 +204,25 @@ int main(int, char **)
                 data_types.clear();
                 centroid_colors.clear();
                 cluster_data_colors.clear();
+                if(metric == IOU) clear_image(&image);
 
                 model_t model = kmeans(data, k, (kmeans_metric_t)metric, use_smart_centers);
                 centroids = model.centers;
 
                 auto colors = get_colors(k);
                 for(int i = 0; i < centroids.vals.size(); ++i) {
-                    centroid_colors[centroids.vals[i]] = colors[i];
-                    data_types[centroids.vals[i]] = KMEANS_CENTROID;
+                    color_t c = colors[i];
+                    auto centroid = centroids.vals[i];
+
+                    centroid_colors[centroid] = c;
+                    data_types[centroid] = KMEANS_CENTROID;
+                    if(metric == IOU) {
+                        float width = centroid[0], height = centroid[1];
+                        draw_box(&image, 
+                                 image.w/2 - (image.w*width)/2, image.h/2 - (image.h*height)/2, 
+                                 image.w/2 + (image.w*width)/2, image.h/2 + (image.h*height)/2,
+                                 c.r, c.g, c.b);
+                    }
                 }
 
                 for(int i = 0; i < model.assignments.size(); ++i) {
@@ -272,26 +230,31 @@ int main(int, char **)
                     data_types[data.vals[i]] = KMEANS_CLUSTER;
                 }
             }
+
             if(metric == IOU) 
             {
                 ImGui::TextWrapped("Below is a visualization of the anchor boxes. Hover for a zoomed view!");
                 ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos();
-                float tex_w = (float)ImGui::GetIO().Fonts->TexWidth;
-                float tex_h = (float)ImGui::GetIO().Fonts->TexHeight;
-                ImTextureID tex_id = ImGui::GetIO().Fonts->TexID;
-                ImGui::Text("%.0fx%.0f", tex_w, tex_h);
-                ImGui::Image(tex_id, ImVec2(tex_w, tex_h), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
+
+                // Convert from CHW(channels separate) to HWC(channels interleaved)
+                std::vector<unsigned char> byte_image(image.c*image.h*image.w, 0);
+                for(int k = 0; k < image.c; ++k) {
+                    for(int i = 0; i < image.w*image.h; ++i) {
+                        byte_image[i*image.c+k] = (unsigned char) (255*image.data[i + k*image.w*image.h]);
+                    }
+                }
+
+                GLuint texture = vdbTexImage2D(byte_image.data(), image.w, image.h, GL_RGB);
+                ImGui::Image((GLuint*)texture, ImVec2(image.w, image.h), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
                 if (ImGui::IsItemHovered()) 
                 {
                     ImGui::BeginTooltip();
-                    float focus_sz = 32.0f;
-                    float focus_x = ImGui::GetMousePos().x - tex_screen_pos.x - focus_sz * 0.5f; if (focus_x < 0.0f) focus_x = 0.0f; else if (focus_x > tex_w - focus_sz) focus_x = tex_w - focus_sz;
-                    float focus_y = ImGui::GetMousePos().y - tex_screen_pos.y - focus_sz * 0.5f; if (focus_y < 0.0f) focus_y = 0.0f; else if (focus_y > tex_h - focus_sz) focus_y = tex_h - focus_sz;
-                    ImGui::Text("Min: (%.2f, %.2f)", focus_x, focus_y);
-                    ImGui::Text("Max: (%.2f, %.2f)", focus_x + focus_sz, focus_y + focus_sz);
-                    ImVec2 uv0 = ImVec2((focus_x) / tex_w, (focus_y) / tex_h);
-                    ImVec2 uv1 = ImVec2((focus_x + focus_sz) / tex_w, (focus_y + focus_sz) / tex_h);
-                    ImGui::Image(tex_id, ImVec2(128,128), uv0, uv1, ImColor(255,255,255,255), ImColor(255,255,255,128));
+                    const float region_sz = 32.0f, zoom = 4.0f;
+                    float region_x = ImGui::GetMousePos().x - tex_screen_pos.x - region_sz * 0.5f; if (region_x < 0.0f) region_x = 0.0f; else if (region_x > image.w - region_sz) region_x = image.w - region_sz;
+                    float region_y = ImGui::GetMousePos().y - tex_screen_pos.y - region_sz * 0.5f; if (region_y < 0.0f) region_y = 0.0f; else if (region_y > image.h - region_sz) region_y = image.h - region_sz;
+                    ImVec2 uv0 = ImVec2((region_x) / image.w, (region_y) / image.h);
+                    ImVec2 uv1 = ImVec2((region_x + region_sz) / image.w, (region_y + region_sz) / image.h);
+                    ImGui::Image((GLuint*)texture, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, ImColor(255,255,255,255), ImColor(255,255,255,128));
                     ImGui::EndTooltip();
                 }
             }
