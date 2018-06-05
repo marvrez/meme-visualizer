@@ -28,6 +28,7 @@ matrix_t concat_matrix(matrix_t a, matrix_t b);
 // statistics stuff
 float mean_matrix(const matrix_t& m);
 float variance_matrix(const matrix_t& m);
+matrix_t covariance_matrix(const matrix_t& m);
 
 // utils for parsing from file
 int count_fields(std::string line);

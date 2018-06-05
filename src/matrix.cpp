@@ -39,6 +39,35 @@ float variance_matrix(const matrix_t& m)
 
 }
 
+matrix_t covariance_matrix(const matrix_t& m)
+{
+    const int dim = m.cols, num_data_points = m.rows;
+    assert(num_data_points > 0 && dim > 0);
+
+    std::vector<float> mean(dim, 0);
+    matrix_t cov_mat = make_matrix(dim, dim);
+
+    for (int i = 0; i < dim; ++i) {
+        for (int k = 0; k < num_data_points; ++k) mean[i] += m.vals[k][i];
+        mean[i] /= num_data_points;
+    }
+
+    for (int k = 0; k < num_data_points; ++k)
+        for (int i = 0; i < dim; ++i)
+            for (int j = 0; j <= i; ++j)
+                cov_mat.vals[i][j] += (m.vals[k][i] - mean[i]) * (m.vals[k][j] - mean[j]);
+
+    for (int i = 0; i < dim; ++i) {
+        for (int j = 0; j < i; ++j) {
+            cov_mat.vals[i][j] /= num_data_points;
+            cov_mat.vals[j][i] = cov_mat.vals[i][j];
+        }
+        cov_mat.vals[i][i] /= num_data_points;
+    }
+
+    return cov_mat;
+}
+
 // creates random matrix with uniformly distributed numbers
 matrix_t create_random_uniform_matrix(int rows, int cols)
 {
