@@ -36,6 +36,5 @@ void kmeans_maximization(matrix_t data, model_t* model);
 
 // actual kmeans
 model_t kmeans(matrix_t data, int k, kmeans_metric_t metric, bool use_smart_centers);
-model_t soft_kmeans(matrix_t data, int k, kmeans_metric_t metric, bool use_smart_centers);
 
 #endif
