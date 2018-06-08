@@ -47,6 +47,22 @@ void draw_point(float x, float y, float r, color_t c)
     glEnd();
 }
 
+void draw_arrow(float x1, float y1, float x2, float y2, color_t c)
+{
+    float x_len = x2-x1, y_len = y2-y1;
+    float line_angle = x_len ? atan(y_len/x_len) : M_PI / 2;
+    float s = ((x2 >= x1 && y2 > y1) || (x2 > x1 && y2 <= y1)) ? 0.05 : -0.05;
+
+    if(x_len == 0 && y_len == 0) return;
+
+    glColor4fv(c.data);
+    glLines(3.0f);
+    draw_line(x1, y1, x2, y2, c);
+    draw_line(x2, y2, x2 - s*cosf(line_angle + M_PI/6), y2 - s*sinf(line_angle + M_PI/6), c);
+    draw_line(x2, y2, x2 - s*cosf(line_angle - M_PI/6), y2 - s*sinf(line_angle - M_PI/6), c);
+    glEnd();
+}
+
 void plot_data_point(const std::vector<float>& data_point)
 {
     float x = data_point[0], y = data_point[1];
@@ -93,6 +109,7 @@ int main(int, char **)
         glColor4f(1,1,1,0.5f);
         vdbGridXY(-1, +1, -1, +1, 2);
         glEnd();
+
 
         for (int i = 0; i < data.rows; i++) {
             std::vector<float> data_point = data.vals[i];
@@ -161,6 +178,27 @@ int main(int, char **)
             {
                 matrix_t cov_mat = {2, 2, {{var[0], covar[0]}, {covar[1], var[1]}} };
                 data = generate_covariance_data(cov_mat);
+            }
+
+            if(ImGui::Button("Calculate eigen stuff"))
+            {
+                matrix_t test = make_matrix(4,4);
+                test.vals = {{4, -30, 60, -35},
+                              {-30, 300, -675, 420},
+                              {60, -675, 1620, -1050},
+                              {-35, 420, -1050, 700}};
+                matrix_t eigen_vecs = make_matrix(4,4);
+                std::vector<float> eigen_vals(4,0);
+                jacobi_eigenvalue(&test, eigen_vals, &eigen_vecs);
+
+                printf("TEST:\n");
+                print_matrix(test);
+
+                printf("EIGEN_VECS:\n");
+                print_matrix(eigen_vecs);
+
+                printf("EIGEN_VALS:\n");
+                printf("%f %f %f %f\n", eigen_vals[0], eigen_vals[1], eigen_vals[2], eigen_vals[3]);
             }
         }
 
