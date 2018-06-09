@@ -1,10 +1,13 @@
 #include "vdb/vdb.h"
 #include "image.h"
 #include "color_utils.h"
+#include "pca.h"
 #include "matrix.h"
 #include "data_gen.h"
 #include "kmeans.h"
 #include "rng.h"
+
+#include "vdb/imguifilesystem.h"
 
 #include <vector>
 #include <cstdio>
@@ -63,6 +66,18 @@ void draw_arrow(float x1, float y1, float x2, float y2, color_t c)
     glEnd();
 }
 
+void draw_principal_components(principal_components_t pca)
+{
+    auto pc = pca.eigen_vecs.vals;
+
+    //normalizing factors
+    float alpha_1 = sqrtf(pc[0][0]*pc[0][0] + pc[0][1]*pc[0][1]);
+    float alpha_2 = sqrtf(pc[1][0]*pc[1][0] + pc[1][1]*pc[1][1]);
+
+    draw_arrow(0,0, 0.4*pc[0][0] / alpha_1, 0.4*pc[0][1] / alpha_1, { 0.99f, 0.30f, 0.97f, 1.f });
+    draw_arrow(0,0, 0.4*pc[1][0] / alpha_2, 0.4*pc[1][1] / alpha_2, { 0.30f, 0.99f, 0.79f, 1.f });
+}
+
 void plot_data_point(const std::vector<float>& data_point)
 {
     float x = data_point[0], y = data_point[1];
@@ -83,6 +98,19 @@ void plot_data_point(const std::vector<float>& data_point)
     }
 }
 
+bool colored_button(const char* text, float hue)
+{
+    ImGui::PushID(0);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImColor::HSV(hue, 0.6f, 0.6f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor::HSV(hue, 0.7f, 0.7f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor::HSV(hue, 0.8f, 0.8f));
+    bool button_pressed = ImGui::Button(text);
+    ImGui::PopStyleColor(3);
+    ImGui::PopID();
+
+    return button_pressed;
+}
+
 int main(int, char **) 
 {
     // Controls
@@ -99,8 +127,9 @@ int main(int, char **)
     static matrix_t data = create_random_uniform_matrix(rows, cols);
     static matrix_t centroids = make_matrix(0, 0);
     static image_t image = make_image(100, 100, 3);
+    static principal_components_t pcs { 0, 0 };
 
-    VDBB("k-means clustering");
+    VDBB("ml-memes");
     {
         vdb2D(-1, +1, -1, +1);
 
@@ -109,7 +138,6 @@ int main(int, char **)
         glColor4f(1,1,1,0.5f);
         vdbGridXY(-1, +1, -1, +1, 2);
         glEnd();
-
 
         for (int i = 0; i < data.rows; i++) {
             std::vector<float> data_point = data.vals[i];
@@ -137,7 +165,7 @@ int main(int, char **)
 
         TextWrapped("This shows an example of how k-means clustering works.");
 
-        if (ImGui::Button("Load..")) ImGui::OpenPopup("Load data from CSV?");
+        if (colored_button("Load..", 0.0f)) ImGui::OpenPopup("Load data from CSV?");
         if (ImGui::BeginPopupModal("Load data from CSV?", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             static char filename[1024];
@@ -174,32 +202,21 @@ int main(int, char **)
             ImGui::SliderFloat2("xy- and yx-covariance", covar, -5.0f, 5.0f);
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
-            if(ImGui::Button("Generate covariance data"))
+            if(colored_button("Generate covariance data", 5.f/7.f))
             {
                 matrix_t cov_mat = {2, 2, {{var[0], covar[0]}, {covar[1], var[1]}} };
                 data = generate_covariance_data(cov_mat);
             }
 
-            if(ImGui::Button("Calculate eigen stuff"))
+            ImGui::SameLine();
+            if(colored_button("PCA", 6.f / 7.f))
             {
-                matrix_t test = make_matrix(4,4);
-                test.vals = {{4, -30, 60, -35},
-                              {-30, 300, -675, 420},
-                              {60, -675, 1620, -1050},
-                              {-35, 420, -1050, 700}};
-                matrix_t eigen_vecs = make_matrix(4,4);
-                std::vector<float> eigen_vals(4,0);
-                jacobi_eigenvalue(&test, eigen_vals, &eigen_vecs);
-
-                printf("TEST:\n");
-                print_matrix(test);
-
-                printf("EIGEN_VECS:\n");
-                print_matrix(eigen_vecs);
-
-                printf("EIGEN_VALS:\n");
-                printf("%f %f %f %f\n", eigen_vals[0], eigen_vals[1], eigen_vals[2], eigen_vals[3]);
+                pcs = pca(data);
             }
+        }
+
+        if(pcs.eigen_vals.size() > 0) {
+            draw_principal_components(pcs);
         }
 
         if (ImGui::CollapsingHeader("Cluster data"))
@@ -212,7 +229,7 @@ int main(int, char **)
             ImGui::SliderFloat("sigma", &sigma, 0.0f, 1.0f, "sigma = %.3f");
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
-            if(ImGui::Button("Generate cluster data"))
+            if(colored_button("Generate cluster data", 4.f/7.f))
             {
                 matrix_t centers = create_random_uniform_matrix(num_clusters, 2);
                 auto clusters = generate_clusters(centers, 50, sigma);
@@ -237,7 +254,7 @@ int main(int, char **)
             ImGui::RadioButton("L2",  &metric, L2); ImGui::SameLine();
             ImGui::RadioButton("IOU", &metric, IOU);
 
-            if(ImGui::Button("Run K-means"))
+            if(colored_button("Run K-means", 2.f/7.f))
             {
                 data_types.clear();
                 centroid_colors.clear();
@@ -260,6 +277,7 @@ int main(int, char **)
                                  image.w/2 - (image.w*width)/2, image.h/2 - (image.h*height)/2, 
                                  image.w/2 + (image.w*width)/2, image.h/2 + (image.h*height)/2,
                                  c.r, c.g, c.b);
+                        save_image_jpg(image, "test");
                     }
                 }
 
@@ -275,12 +293,7 @@ int main(int, char **)
                 ImVec2 tex_screen_pos = ImGui::GetCursorScreenPos();
 
                 // Convert from CHW(channels separate) to HWC(channels interleaved)
-                std::vector<unsigned char> byte_image(image.c*image.h*image.w, 0);
-                for(int k = 0; k < image.c; ++k) {
-                    for(int i = 0; i < image.w*image.h; ++i) {
-                        byte_image[i*image.c+k] = (unsigned char) (255*image.data[i + k*image.w*image.h]);
-                    }
-                }
+                std::vector<unsigned char> byte_image = get_hwc_bytes(image);
 
                 GLuint texture = vdbTexImage2D(byte_image.data(), image.w, image.h, GL_RGB);
                 ImGui::Image((GLuint*)texture, ImVec2(image.w, image.h), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
@@ -299,6 +312,8 @@ int main(int, char **)
         }
     }
     VDBE();
+
+    #include "image_processing.cpp"
 
     return 0;
 }
