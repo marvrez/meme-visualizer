@@ -326,7 +326,7 @@ void jacobi_eigenvalue(matrix_t* m, std::vector<float>& eigen_vals, matrix_t* ei
 
                     //  Accumulate information in the eigenvector matrix.
                     for (int j = 0; j < n; ++j) {
-                        m_rotate(eigen_vecs->vals, j, p, j, q)
+                        m_rotate(eigen_vecs->vals, p, j, q, j)
                     }
                     #undef m_rotate
                 }
