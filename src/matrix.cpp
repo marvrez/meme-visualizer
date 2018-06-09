@@ -12,11 +12,10 @@ matrix_t make_matrix(int rows, int cols)
     return m;
 }
 
-matrix_t make_identity(int rows, int cols)
+matrix_t make_identity(int n)
 {
-    assert(rows == cols);
-    matrix_t m = make_matrix(rows, cols);
-    for(int i = 0; i < rows; ++i) {
+    matrix_t m = make_matrix(n, n);
+    for(int i = 0; i < n; ++i) {
         m.vals[i][i] = 1;
     }
     return m;
@@ -66,6 +65,15 @@ matrix_t covariance_matrix(const matrix_t& m)
     }
 
     return cov_mat;
+}
+
+
+std::vector<float> get_diagonal(const matrix_t& m)
+{
+    assert(m.rows == m.cols);
+    std::vector<float> v(m.rows);
+    for(int i = 0; i < m.rows; ++i) v[i] = m.vals[i][i];
+    return v;
 }
 
 // creates random matrix with uniformly distributed numbers
@@ -244,6 +252,98 @@ void scale_matrix(matrix_t* m, float scale_val)
     for(int i = 0; i < m->rows; ++i){
         for(int j = 0 ; j < m->cols; ++j){
             m->vals[i][j] *= scale_val;
+        }
+    }
+}
+
+void jacobi_eigenvalue(matrix_t* m, std::vector<float>& eigen_vals, matrix_t* eigen_vecs, int max_iter)
+{
+    int n = m->cols;
+    std::vector<float> b(n, 0), z(n, 0);
+
+    *eigen_vecs = make_identity(n);
+    for (int i = 0; i < n; ++i) {
+        b[i] = eigen_vals[i] = m->vals[i][i];
+        z[i] = 0.0f;
+    }
+
+    for (int i = 1; i <= max_iter; ++i) {
+        float thresh = 0.0f;
+        for (int p = 0; p < n - 1; ++p) {
+            for (int q = p + 1; q < n; ++q) {
+                thresh += m->vals[p][q] * m->vals[p][q];
+            }
+        }
+
+        thresh = sqrtf(thresh) / (float) (4*n); 
+        if (thresh == 0.0f) break;
+
+        for (int p = 0; p < n; ++p) {
+            for (int q = p + 1; q < n; ++q) {
+                float g = 10.0f * fabs(m->vals[p][q]);
+
+                //  Annihilate tiny offdiagonal elements.
+                if (i > 4 && fabs(eigen_vals[p]) + g == fabs(eigen_vals[p]) && fabs(eigen_vals[q]) + g == fabs(eigen_vals[q]))
+                    m->vals[p][q] = 0.0;
+
+                // otherwise, apply a rotation
+                else if (thresh <= fabs(m->vals[p][q])) {
+                    float tau, t, s, c;
+                    float h = eigen_vals[q] - eigen_vals[p];
+
+                    if (fabs(h) + g == fabs(h)) t = (m->vals[p][q]) / h;
+                    else {
+                        float theta = 0.5f * h / (m->vals[p][q]);
+                        t = 1.0f / (fabs(theta) + sqrtf(1.0f + theta * theta));
+                        if (theta < 0.0f) t = -t;
+                    }
+                    c = 1.0f / sqrtf(1.0f + t * t);
+                    s = t * c;
+                    tau = s / (1.0f + c);
+                    h = t * m->vals[p][q];
+
+                    //  Accumulate corrections to diagonal elements.
+                    z[p] -= h, z[q] += h;
+                    eigen_vals[p] -= h, eigen_vals[q] += h;
+                    m->vals[p][q] = 0.0f;
+
+                    #define m_rotate(a,i,j,k,l) \
+                        g = a[i][j]; \
+                        h = a[k][l]; \
+                        a[i][j] = g - s*(h + g*tau); \
+                        a[k][l] = h + s*(g - h*tau);
+
+                    //  Rotate, using information from the upper triangle of A only.
+                    for (int j = 0; j < p; ++j) {
+                        m_rotate(m->vals, j, p, j, q)
+                    }
+                    for (int j = p + 1; j < q; ++j) {
+                        m_rotate(m->vals, p, j, j, q)
+                    }
+                    for (int j = q + 1; j < n; ++j) {
+                        m_rotate(m->vals, p, j, q, j)
+                    }
+
+                    //  Accumulate information in the eigenvector matrix.
+                    for (int j = 0; j < n; ++j) {
+                        m_rotate(eigen_vecs->vals, j, p, j, q)
+                    }
+                    #undef m_rotate
+                }
+            }
+        }
+
+        for (int j = 0; j < n; ++j) {
+            b[j] += z[j];
+            eigen_vals[j] = b[j];
+            z[j]  = 0.0f;
+        }
+    }
+
+    //  Restore upper triangle of input matrix.
+    for (int p = 0; p < n - 1; ++p) {
+        for (int q = p + 1; q < n; ++q) {
+            m->vals[p][q] = m->vals[q][p];
         }
     }
 }
