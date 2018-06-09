@@ -6,22 +6,14 @@ void principal_component_sort(principal_components_t* principal_components)
     std::vector<float>& eigen_vals = principal_components->eigen_vals;
     int k, n = eigen_vecs->rows;
 
-    for (int i = 0; i < n - 1; ++i) {
-        float p = eigen_vals[k = i];
-
+    for (int i = 0, k = i; i < n - 1; ++i) {
         for (int j = i + 1; j < n; ++j) {
-            if (eigen_vals[j] >= p) 
-                p = eigen_vals[k = j];
+            if (eigen_vals[j] >= eigen_vals[i]) k = j;
         }
-
         if (k != i) {
-            eigen_vals[k] = eigen_vals[i];
-            eigen_vals[i] = p;
-
+            std::swap(eigen_vals[i], eigen_vals[k]);
             for (int j = 0; j < n; ++j) {
-                p = eigen_vecs->vals[j][i];
-                eigen_vecs->vals[j][i] = eigen_vecs->vals[j][k];
-                eigen_vecs->vals[j][k] = p;
+                std::swap(eigen_vecs->vals[j][i], eigen_vecs->vals[j][k]);
             }
         }
     }
