@@ -93,6 +93,8 @@ IMGUI_API void*         ImLoadFileToMemory(const char* filename, const char* fil
 IMGUI_API bool          ImIsPointInTriangle(const ImVec2& p, const ImVec2& a, const ImVec2& b, const ImVec2& c);
 static inline bool      ImCharIsSpace(int c)            { return c == ' ' || c == '\t' || c == 0x3000; }
 static inline int       ImUpperPowerOfTwo(int v)        { v--; v |= v >> 1; v |= v >> 2; v |= v >> 4; v |= v >> 8; v |= v >> 16; v++; return v; }
+IMGUI_API FILE*         ImFileOpen(const char* filename, const char* file_open_mode);
+
 
 // Helpers: String
 IMGUI_API int           ImStricmp(const char* str1, const char* str2);

@@ -216,12 +216,11 @@ void vdb_saveSettings();
 #define SO_PLATFORM_IMPLEMENTATION
 #define SO_PLATFORM_IMGUI
 #define SO_NOISE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
 #include "jo_gif.cpp"
 #include "imgui_draw.cpp"
 #include "imgui.cpp"
 #include "imgui_demo.cpp"
+#include "imguifilesystem.cpp"
 #include "so_platform_sdl.h"
 #include <float.h> // FLT_MAX
 
@@ -1288,17 +1287,6 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
             }
             jo_gif_frame(&record_gif, data, gif_frame_delay/10, false);
         }
-        else
-        {
-            char filename[1024];
-            sprintf(filename, format, frame_index);
-            int bytes = stbi_write_png(filename, w, h, 4, data+w*(h-1)*4, -w*4);
-            if (bytes == 0)
-            {
-                TextColored(ImVec4(1.0f, 0.3f, 0.1f, 1.0f), "Failed to write file %s\n", filename);
-            }
-            current_bytes += bytes;
-        }
         frame_index++;
         free(data);
 
@@ -1476,13 +1464,10 @@ void vdb_postamble(so_input input)
         {
             Text("F10 : Step once");
             Text("F5  : Step over");
-            Text("Ctrl+V : Record video");
             Text("Ctrl+R : Show ruler");
             Text("Ctrl+W : Set window size");
             Text("Escape : Close window");
-            Text("PrtScr : Take screenshot");
             Text("");
-            Text("github.com/lightbits/vdb");
             if (_vdbKeyPressed(ESCAPE) || input.left.pressed)
             {
                 CloseCurrentPopup();
@@ -1543,7 +1528,6 @@ void vdb_postamble(so_input input)
                 glPixelStorei(GL_PACK_ALIGNMENT, 1);
                 glReadBuffer(GL_BACK);
                 glReadPixels(0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
-                stbi_write_png(filename, width, height, channels, data+stride*(height-1), -stride);
                 free(data);
                 CloseCurrentPopup();
             }
