@@ -21,6 +21,10 @@ void scale_image(image_t* m, float s);
 void translate_image(image_t* m, float s);
 void fill_image(image_t* m, float s);
 
+void threshold_image(const image_t& in_rgb, image_t* out_gray, float thresh);
+void threshold_image(const image_t& in_rgb, image_t* out_gray, float rt, float gt, float bt, float at);
+
+
 void draw_box(image_t* m, int x1, int y1, int x2, int y2, float r, float g, float b);
 
 // Get HWC(channels interleaved) bytes from CHW(channels separate) float image

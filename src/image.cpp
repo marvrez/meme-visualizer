@@ -56,6 +56,14 @@ void fill_image(image_t* m, float s)
         m->data[i] = s;
 }
 
+void threshold_image(const image_t& in_rgb, image_t* out_gray, float thresh)
+{
+    *out_gray = make_image(in_rgb.w, in_rgb.h, in_rgb.c);
+    for(int i = 0; i < in_rgb.w*in_rgb.h*in_rgb.c; ++i) {
+        out_gray->data[i] = (in_rgb.data[i] > thresh) ? 1.f : 0.f;
+    }
+}
+
 void copy_image(const image_t& src, image_t* dst)
 {
     *dst = { src.w, src.h, src.c, src.data };
