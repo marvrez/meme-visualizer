@@ -10,6 +10,8 @@ typedef struct {
 } image_t;
 
 image_t make_image(int w, int h, int c);
+image_t make_image_grayscale(int w, int h);
+image_t make_image_colored(int w, int h);
 image_t make_image_from_chw_bytes(int w, int h, int c, unsigned char* data);
 image_t make_image_from_hwc_bytes(int w, int h, int c, unsigned char* data);
 
@@ -22,8 +24,7 @@ void translate_image(image_t* m, float s);
 void fill_image(image_t* m, float s);
 
 void threshold_image(const image_t& in_rgb, image_t* out_gray, float thresh);
-void threshold_image(const image_t& in_rgb, image_t* out_gray, float rt, float gt, float bt, float at);
-
+void threshold_image(const image_t& in_rgb, image_t* out_gray, float rt, float gt, float bt, float dt);
 
 void draw_box(image_t* m, int x1, int y1, int x2, int y2, float r, float g, float b);
 

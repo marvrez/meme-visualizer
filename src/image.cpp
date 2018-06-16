@@ -11,6 +11,16 @@ image_t make_image(int w, int h, int c)
     return out;
 }
 
+image_t make_image_grayscale(int w, int h)
+{
+    return make_image(w,h,1);
+}
+
+image_t make_image_colored(int w, int h)
+{
+    return make_image(w,h,3);
+}
+
 image_t make_image_from_chw_bytes(int w, int h, int c, unsigned char* data)
 {
     image_t out = make_image(w,h,c);
@@ -31,6 +41,25 @@ image_t make_image_from_hwc_bytes(int w, int h, int c, unsigned char* data)
         }
     }
     return m;
+}
+
+static void set_pixel(image_t* m, int x, int y, int c, float val)
+{
+    if (x < 0 || y < 0 || c < 0 || x >= m->w || y >= m->h || c >= m->c) return;
+    m->data[(c * m->h * m->w) + (y * m->w) + x] = val;
+}
+
+static float get_pixel(const image_t& m, int x, int y, int c)
+{
+    assert(x < m.w && y < m.h && c < m.c);
+    return m.data[x + y*m.w + c*m.h*m.w];
+}
+
+static float get_pixel_extend(const image_t& m, int x, int y, int c)
+{
+    if(x < 0 || x >= m.w || y < 0 || y >= m.h) return 0;
+    if(c < 0 || c >= m.c) return 0;
+    return get_pixel(m, x, y, c);
 }
 
 void clear_image(image_t* m)
@@ -64,6 +93,28 @@ void threshold_image(const image_t& in_rgb, image_t* out_gray, float thresh)
     }
 }
 
+void threshold_image(const image_t& in_rgb, image_t* out_gray, float rt, float gt, float bt, float dt)
+{
+    *out_gray = make_image_grayscale(in_rgb.w, in_rgb.h);
+    for (int y = 0; y < in_rgb.h; ++y) {
+        for (int x = 0; x < in_rgb.w; ++x) {
+            float r = get_pixel(in_rgb,x,y,0), g = get_pixel(in_rgb,x,y,1), b = get_pixel(in_rgb,x,y,2);
+
+            float dr = fabsf(r - rt), dg = fabsf(g - gt), db = fabsf(b - bt);
+            float dd = (dr + dg + db) / 3.0f;
+
+            float result = 0.f;
+            if (dd < dt) {
+                float result_real = (2*r + 1*b + 3*g) / 6.0f;
+                result_real *= 1.0f - dd/dt;
+                result = result_real < 0 ? 0.f : (result_real > 1.f ? 1.f : result_real);
+            }
+            set_pixel(out_gray, x, y, 0, result);
+        }
+    }
+}
+
+
 void copy_image(const image_t& src, image_t* dst)
 {
     *dst = { src.w, src.h, src.c, src.data };
@@ -72,25 +123,6 @@ void copy_image(const image_t& src, image_t* dst)
 image_t copy_image(const image_t& m)
 {
     return {m.w, m.h, m.c, m.data};
-}
-
-static void set_pixel(image_t* m, int x, int y, int c, float val)
-{
-    if (x < 0 || y < 0 || c < 0 || x >= m->w || y >= m->h || c >= m->c) return;
-    m->data[(c * m->h * m->w) + (y * m->w) + x] = val;
-}
-
-static float get_pixel(const image_t& m, int x, int y, int c)
-{
-    assert(x < m.w && y < m.h && c < m.c);
-    return m.data[x + y*m.w + c*m.h*m.w];
-}
-
-static float get_pixel_extend(const image_t& m, int x, int y, int c)
-{
-    if(x < 0 || x >= m.w || y < 0 || y >= m.h) return 0;
-    if(c < 0 || c >= m.c) return 0;
-    return get_pixel(m, x, y, c);
 }
 
 void draw_box(image_t* m, int x1, int y1, int x2, int y2, float r, float g, float b)
@@ -144,7 +176,7 @@ image_t load_image(const char* filename, int num_channels)
         exit(0);
     }
     if(num_channels) c = num_channels;
-    image_t img =  make_image_from_hwc_bytes(w,h,c, data);
+    image_t img = make_image_from_hwc_bytes(w,h,c,data);
     delete[] data;
     return img;
 }
