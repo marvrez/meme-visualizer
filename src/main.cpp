@@ -6,6 +6,7 @@
 #include "data_gen.h"
 #include "kmeans.h"
 #include "rng.h"
+#include "connected_components.h"
 
 #include "vdb/imguifilesystem.h"
 
@@ -116,7 +117,6 @@ int main(int, char **)
     // Controls
     // F10 : Step once
     // F5 : Step over
-    // Ctrl+V : Record video
     // Ctrl+R : Show ruler
     // Ctrl+W : Set window size
     // Escape : Close window
@@ -277,7 +277,6 @@ int main(int, char **)
                                  image.w/2 - (image.w*width)/2, image.h/2 - (image.h*height)/2, 
                                  image.w/2 + (image.w*width)/2, image.h/2 + (image.h*height)/2,
                                  c.r, c.g, c.b);
-                        save_image_jpg(image, "test");
                     }
                 }
 
@@ -313,7 +312,7 @@ int main(int, char **)
     }
     VDBE();
 
-    #include "image_processing.cpp"
+    #include "gui_content/image_processing.cpp"
 
     return 0;
 }
