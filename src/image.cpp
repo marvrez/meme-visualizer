@@ -43,19 +43,19 @@ image_t make_image_from_hwc_bytes(int w, int h, int c, unsigned char* data)
     return m;
 }
 
-static void set_pixel(image_t* m, int x, int y, int c, float val)
+void set_pixel(image_t* m, int x, int y, int c, float val)
 {
     if (x < 0 || y < 0 || c < 0 || x >= m->w || y >= m->h || c >= m->c) return;
     m->data[(c * m->h * m->w) + (y * m->w) + x] = val;
 }
 
-static float get_pixel(const image_t& m, int x, int y, int c)
+float get_pixel(const image_t& m, int x, int y, int c)
 {
     assert(x < m.w && y < m.h && c < m.c);
     return m.data[x + y*m.w + c*m.h*m.w];
 }
 
-static float get_pixel_extend(const image_t& m, int x, int y, int c)
+float get_pixel_extend(const image_t& m, int x, int y, int c)
 {
     if(x < 0 || x >= m.w || y < 0 || y >= m.h) return 0;
     if(c < 0 || c >= m.c) return 0;

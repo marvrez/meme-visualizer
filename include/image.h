@@ -15,6 +15,10 @@ image_t make_image_colored(int w, int h);
 image_t make_image_from_chw_bytes(int w, int h, int c, unsigned char* data);
 image_t make_image_from_hwc_bytes(int w, int h, int c, unsigned char* data);
 
+void set_pixel(image_t* m, int x, int y, int c, float val);
+float get_pixel(const image_t& m, int x, int y, int c);
+float get_pixel_extend(const image_t& m, int x, int y, int c);
+
 image_t copy_image(const image_t& m);
 void copy_image(const image_t& src, image_t* dst);
 void clear_image(image_t* m);
