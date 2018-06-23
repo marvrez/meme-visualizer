@@ -54,31 +54,31 @@ VDBB("Image processing");
         prev_threshold_d = white_threshold_d;
     }
 
-    static float r_g, r_b, r_n;
-    if (ImGui::CollapsingHeader("Red thresholds"))
-    {
+    static float r_g = 1.f, r_b = 1.f, r_n = 0.f;
+    if (ImGui::CollapsingHeader("Red thresholds")) {
         ImGui::SliderFloat("red over green (r_g)", &r_g, 1.0f, 10.0f);
         ImGui::SliderFloat("red over blue (r_b)", &r_b, 1.0f, 10.0f);
         ImGui::SliderFloat("minimum brightness (r_n)", &r_n, 0.0f, 255.0f);
     }
 
-    static float g_r, g_b, g_n;
-    if (ImGui::CollapsingHeader("Green thresholds"))
-    {
+    static float g_r = 1.f, g_b = 1.f, g_n = 0.f;
+    if (ImGui::CollapsingHeader("Green thresholds")) {
         ImGui::SliderFloat("green over red (g_r)", &g_r, 1.0f, 10.0f);
         ImGui::SliderFloat("green over blue (g_b)", &g_b, 1.0f, 10.0f);
         ImGui::SliderFloat("minimum brightness (g_n)", &g_n, 0.0f, 255.0f);
     }
 
-    static float b_r, b_g, b_n;
-    if (ImGui::CollapsingHeader("Blue thresholds"))
-    {
+    static float b_r = 1.f, b_g = 1.f, b_n = 0.f;
+    if (ImGui::CollapsingHeader("Blue thresholds")) {
         ImGui::SliderFloat("blue over red (b_r)", &b_r, 1.0f, 10.0f);
         ImGui::SliderFloat("blue over green (b_g)", &b_g, 1.0f, 10.0f);
         ImGui::SliderFloat("minimum brightness (b_n)", &b_n, 0.0f, 255.0f);
     }
 
     if(colored_button("Reset", 0.f)) {
+        cc_options_t opt = { r_g, r_b, r_n/255.f, g_r, g_b, g_n/255.f, b_r, b_g, b_n/255.f };
+        std::vector<int> points;
+        auto test = connected_components(loaded_image, opt, &points);
         screen_image = loaded_image;
         data_format = GL_RGB;
     }
