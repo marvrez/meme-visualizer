@@ -2,20 +2,21 @@
 
 #include <queue>
 
-void connected_components_bfs(const image_t& binary, const std::vector<int>& points, std::vector<int>* label) 
+void connected_components_bfs(const image_t& binary, const std::vector<std::pair<int,int> >& points, std::vector<int>* label) 
 {
     *label = std::vector<int>(binary.w*binary.h, -1);
     int count = 0;
     for (int i = 0; i < points.size(); ++i) {
-        int root = points[i];
-        if ((*label)[root] == -1) {
+        std::pair<int,int> root = points[i];
+        int root_point = root.second*binary.w + root.first;
+
+        if ((*label)[root_point] == -1) {
             std::queue<int> queue;
-            queue.push(root);
+            queue.push(root_point);
             while (!queue.empty()) {
                 // extract from queue and grow component
                 int p = queue.front(); queue.pop();
                 if((*label)[p] != -1) continue;
-
                 (*label)[p] = count;
 
                 int neighbors[] = { p+binary.w, p-binary.w, p+1, p-1, p+1+binary.w, p-1+binary.w, p+1-binary.w, p-1-binary.w };
@@ -30,7 +31,7 @@ void connected_components_bfs(const image_t& binary, const std::vector<int>& poi
     }
 }
 
-std::vector<int> connected_components(const image_t& m, cc_options_t opt, std::vector<int>* points)
+std::vector<int> connected_components(const image_t& m, cc_options_t opt, std::vector<std::pair<int,int> >* points)
 {
     points->clear();
     image_t binary = make_image_grayscale(m.w, m.h);
@@ -48,34 +49,13 @@ std::vector<int> connected_components(const image_t& m, cc_options_t opt, std::v
                 bool is_blue  = b > opt.b_r*r && b > opt.b_g*g && norm > opt.b_n*3;
 
                 set_pixel(&binary, x, y, 0, 0.f);
-                if (is_red || is_green /*|| is_blue*/) {
-                    points->push_back(y*m.w+x);
+                if (is_red || is_green || is_blue) {
+                    points->push_back({x, y});
                     set_pixel(&binary, x, y, 0, 1.f);
                 }
             }
         }
     }
-    save_image_png(binary, "binary");
     connected_components_bfs(binary, *points, &label);
-
     return label;
 }
-
-#if 0 
-image_t draw_connected_components(const image_t& m, const image_t& points, const std::vector<int>& label)
-{
-    image_t out = copy_image(m);
-    for (int i = 0; i < points.size(); i++) {
-        int p = points.data[i];
-        int l = label[p];
-        vdb_color c = vdbPalette(l);
-        set_pixel(&out, 0, c.r);
-        set_pixel(&out, 1, c.g);
-        set_pixel(&out, 2, c.b);
-        I_groups[3*p+0] = c.r;
-        I_groups[3*p+1] = c.g;
-        I_groups[3*p+2] = c.b;
-    }
-    return out;
-}
-#endif

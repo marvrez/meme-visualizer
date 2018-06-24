@@ -11,8 +11,7 @@ typedef struct {
     float b_r, b_g, b_n;
 } cc_options_t;
 
-void connected_components_bfs(const image_t& binary, const std::vector<int>& points, std::vector<int>* label);
-std::vector<int> connected_components(const image_t& m, cc_options_t opt, std::vector<int>* points);
-image_t draw_connected_components(const image_t& m, const image_t& points, const std::vector<int>& label);
+void connected_components_bfs(const image_t& binary, const std::vector<std::pair<int,int> >& points, std::vector<int>* label);
+std::vector<int> connected_components(const image_t& m, cc_options_t opt, std::vector<std::pair<int,int> >* points);
 
 #endif
