@@ -75,11 +75,18 @@ VDBB("Image processing");
         ImGui::SliderFloat("minimum brightness (b_n)", &b_n, 0.0f, 255.0f);
     }
 
-    if(colored_button("Reset", 0.f)) {
+    if(colored_button("Find components", 0.25f)) {
         cc_options_t opt = { r_g, r_b, r_n/255.f, g_r, g_b, g_n/255.f, b_r, b_g, b_n/255.f };
-        std::vector<int> points;
-        auto test = connected_components(loaded_image, opt, &points);
-        screen_image = loaded_image;
+        std::vector<std::pair<int,int> > points;
+        auto label = connected_components(loaded_image, opt, &points);
+        screen_image = copy_image(loaded_image);
+        draw_connected_components(&screen_image, label, points);
+    }
+
+    ImGui::SameLine();
+
+    if(colored_button("Reset", 0.f)) {
+        screen_image = copy_image(loaded_image);
         data_format = GL_RGB;
     }
 }
