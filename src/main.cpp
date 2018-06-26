@@ -99,6 +99,20 @@ void plot_data_point(const std::vector<float>& data_point)
     }
 }
 
+void draw_connected_components(image_t* image, const std::vector<int>& label, const std::vector<std::pair<int,int> >& points)
+{
+    for (int i = 0; i < points.size(); ++i) {
+        std::pair<int,int> p = points[i];
+        int x = p.first, y = p.second;
+        int l = label[y*image->w + x];
+
+        vdb_color c = vdbPalette(l);
+        set_pixel(image, x, y, 0, c.r);
+        set_pixel(image, x, y, 1, c.g);
+        set_pixel(image, x, y, 2, c.b);
+    }
+}
+
 bool colored_button(const char* text, float hue)
 {
     ImGui::PushID(0);
