@@ -1,7 +1,6 @@
 # meme-visualizer
-Visualize different unsupervised ML-memes™
+Visualize different ML and image processing memes
 
 TODO:
-* Page with simple image processing(thresholding, convolutions, and other memes)
+* Convolutions for image processing page
 * SVM
-* Maybe: 3D visualization of all the algorithms over?
