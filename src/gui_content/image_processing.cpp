@@ -6,6 +6,10 @@ VDBB("Image processing");
     static image_t loaded_image = make_image(100,100,3);
     static image_t screen_image = copy_image(loaded_image);
 
+    constexpr int KERNEL_SIZE = 3;
+    static bool preserve = false;
+    static image_t kernel = make_image(KERNEL_SIZE, KERNEL_SIZE, 1);
+
     bool load_button_pressed = colored_button("Load image", 0.125f);
 
     const char* chosen_path = dialog.chooseFileDialog(load_button_pressed);
@@ -73,6 +77,19 @@ VDBB("Image processing");
         ImGui::SliderFloat("blue over red (b_r)", &b_r, 1.0f, 10.0f);
         ImGui::SliderFloat("blue over green (b_g)", &b_g, 1.0f, 10.0f);
         ImGui::SliderFloat("minimum brightness (b_n)", &b_n, 0.0f, 255.0f);
+    }
+
+    if(ImGui::CollapsingHeader("Convolutions")) {
+        ImGui::SliderFloat3("",   &kernel.data[0], -10.0f, 10.0f);
+        ImGui::SliderFloat3(" ",  &kernel.data[KERNEL_SIZE], -10.0f, 10.0f);
+        ImGui::SliderFloat3("  ", &kernel.data[2*KERNEL_SIZE], -10.0f, 10.0f);
+
+        if(colored_button("Convolve", 0.62f)) {
+            screen_image = copy_image(loaded_image);
+            convolve_image(&screen_image, kernel, preserve);
+        }
+        ImGui::SameLine();
+        ImGui::Checkbox("Preserve channel", &preserve);
     }
 
     if(colored_button("Find components", 0.25f)) {
