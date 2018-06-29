@@ -208,3 +208,48 @@ void save_image_jpg(const image_t& m, const char* filename, int quality)
     int success = stbi_write_jpg(buffer, m.w, m.h, m.c, pixels.data(), quality);
     if(!success) fprintf(stderr, "Failed to write image %s\n", buffer);
 }
+
+void convolve_image(image_t* im, const image_t& kernel, bool preserve)
+{
+    assert(kernel.c == 1 || kernel.c == im->c);
+    int shift = (kernel.w-1)/2;
+    bool convolve_single_channel = kernel.c == 1;
+    if (preserve) {
+        image_t result = make_image(im->w, im->h, im->c);
+        for (int i = 0; i < im->w; ++i) {
+            for (int j = 0; j < im->h; ++j) {
+                for (int k = 0; k < im->c; ++k) {
+                    float sum = 0;
+                    for (int l = 0; l < kernel.w; ++l) {
+                        for (int m = 0; m < kernel.h; ++m) {
+                            float val_image = get_pixel_extend(*im, i-shift+l, j-shift+m, k);
+                            float val_kernel = get_pixel(kernel, l, m, convolve_single_channel ? 0 : k);
+                            sum += val_image*val_kernel;
+                        }
+                    }
+                    set_pixel(&result, i, j, k, sum);
+                }
+            }
+        }
+        *im = result;
+    } 
+    else {
+        image_t result = make_image(im->w, im->h, 1);
+        for (int i = 0; i < im->w; ++i) {
+            for (int j = 0; j < im->h; ++j) {
+                float sum = 0;
+                for (int k = 0; k < im->c; ++k) {
+                    for (int l = 0; l < kernel.w; ++l) {
+                        for (int m = 0; m < kernel.h; m++) {
+                            float val_image = get_pixel_extend(*im, i-shift+l, j-shift+m, k);
+                            float val_kernel = get_pixel(kernel, l, m, convolve_single_channel ? 0 : k);
+                            sum += val_image*val_kernel;
+                        }
+                    }
+                }
+                set_pixel(&result, i, j, 0, sum);
+            }
+        }
+        *im = result;
+    }
+}
