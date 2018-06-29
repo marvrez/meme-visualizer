@@ -85,8 +85,8 @@ VDBB("Image processing");
         ImGui::SliderFloat3("  ", &kernel.data[2*KERNEL_SIZE], -10.0f, 10.0f);
 
         if(colored_button("Convolve", 0.62f)) {
-            screen_image = copy_image(loaded_image);
-            convolve_image(&screen_image, kernel, preserve);
+            convolve_image(loaded_image, kernel, &screen_image, preserve);
+            data_format = preserve ? GL_RGB : GL_LUMINANCE;
         }
         ImGui::SameLine();
         ImGui::Checkbox("Preserve channel", &preserve);

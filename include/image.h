@@ -42,6 +42,6 @@ image_t load_image_grayscale(const char* filename);
 void save_image_png(const image_t& m, const char* filename);
 void save_image_jpg(const image_t& m, const char* filename, int quality = 100);
 
-void convolve_image(image_t* im, const image_t& kernel, bool preserve);
+void convolve_image(const image_t& in, const image_t& kernel, image_t* out, bool preserve);
 
 #endif

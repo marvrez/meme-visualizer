@@ -209,47 +209,45 @@ void save_image_jpg(const image_t& m, const char* filename, int quality)
     if(!success) fprintf(stderr, "Failed to write image %s\n", buffer);
 }
 
-void convolve_image(image_t* im, const image_t& kernel, bool preserve)
+void convolve_image(const image_t& in, const image_t& kernel, image_t* out, bool preserve)
 {
-    assert(kernel.c == 1 || kernel.c == im->c);
+    assert(kernel.c == 1 || kernel.c == in.c);
     int shift = (kernel.w-1)/2;
     bool convolve_single_channel = kernel.c == 1;
     if (preserve) {
-        image_t result = make_image(im->w, im->h, im->c);
-        for (int i = 0; i < im->w; ++i) {
-            for (int j = 0; j < im->h; ++j) {
-                for (int k = 0; k < im->c; ++k) {
+        *out = make_image(in.w, in.h, in.c);
+        for (int i = 0; i < in.w; ++i) {
+            for (int j = 0; j < in.h; ++j) {
+                for (int k = 0; k < in.c; ++k) {
                     float sum = 0;
                     for (int l = 0; l < kernel.w; ++l) {
                         for (int m = 0; m < kernel.h; ++m) {
-                            float val_image = get_pixel_extend(*im, i-shift+l, j-shift+m, k);
+                            float val_image = get_pixel_extend(in, i-shift+l, j-shift+m, k);
                             float val_kernel = get_pixel(kernel, l, m, convolve_single_channel ? 0 : k);
                             sum += val_image*val_kernel;
                         }
                     }
-                    set_pixel(&result, i, j, k, sum);
+                    set_pixel(out, i, j, k, sum);
                 }
             }
         }
-        *im = result;
     } 
     else {
-        image_t result = make_image(im->w, im->h, 1);
-        for (int i = 0; i < im->w; ++i) {
-            for (int j = 0; j < im->h; ++j) {
+        *out = make_image(in.w, in.h, 1);
+        for (int i = 0; i < in.w; ++i) {
+            for (int j = 0; j < in.h; ++j) {
                 float sum = 0;
-                for (int k = 0; k < im->c; ++k) {
+                for (int k = 0; k < in.c; ++k) {
                     for (int l = 0; l < kernel.w; ++l) {
                         for (int m = 0; m < kernel.h; m++) {
-                            float val_image = get_pixel_extend(*im, i-shift+l, j-shift+m, k);
+                            float val_image = get_pixel_extend(in, i-shift+l, j-shift+m, k);
                             float val_kernel = get_pixel(kernel, l, m, convolve_single_channel ? 0 : k);
                             sum += val_image*val_kernel;
                         }
                     }
                 }
-                set_pixel(&result, i, j, 0, sum);
+                set_pixel(out, i, j, 0, sum);
             }
         }
-        *im = result;
     }
 }
