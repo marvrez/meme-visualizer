@@ -49,6 +49,12 @@ void set_pixel(image_t* m, int x, int y, int c, float val)
     m->data[(c * m->h * m->w) + (y * m->w) + x] = val;
 }
 
+void add_pixel(image_t* m, int x, int y, int c, float val)
+{
+    if (x < 0 || y < 0 || c < 0 || x >= m->w || y >= m->h || c >= m->c) return;
+    m->data[(c * m->h * m->w) + (y * m->w) + x] += val;
+}
+
 float get_pixel(const image_t& m, int x, int y, int c)
 {
     assert(x < m.w && y < m.h && c < m.c);
@@ -214,8 +220,8 @@ void convolve_image(const image_t& in, const image_t& kernel, image_t* out, bool
     assert(kernel.c == 1 || kernel.c == in.c);
     int shift = (kernel.w-1)/2;
     bool convolve_single_channel = kernel.c == 1;
+    *out = make_image(in.w, in.h, (preserve ? in.c : 1));
     if (preserve) {
-        *out = make_image(in.w, in.h, in.c);
         for (int i = 0; i < in.w; ++i) {
             for (int j = 0; j < in.h; ++j) {
                 for (int k = 0; k < in.c; ++k) {
@@ -233,7 +239,6 @@ void convolve_image(const image_t& in, const image_t& kernel, image_t* out, bool
         }
     } 
     else {
-        *out = make_image(in.w, in.h, 1);
         for (int i = 0; i < in.w; ++i) {
             for (int j = 0; j < in.h; ++j) {
                 float sum = 0;
