@@ -217,41 +217,20 @@ void save_image_jpg(const image_t& m, const char* filename, int quality)
 
 void convolve_image(const image_t& in, const image_t& kernel, image_t* out, bool preserve)
 {
-    assert(kernel.c == 1 || kernel.c == in.c);
-    int shift = (kernel.w-1)/2;
-    bool convolve_single_channel = kernel.c == 1;
-    *out = make_image(in.w, in.h, (preserve ? in.c : 1));
-    if (preserve) {
-        for (int i = 0; i < in.w; ++i) {
-            for (int j = 0; j < in.h; ++j) {
-                for (int k = 0; k < in.c; ++k) {
-                    float sum = 0;
-                    for (int l = 0; l < kernel.w; ++l) {
-                        for (int m = 0; m < kernel.h; ++m) {
-                            float val_image = get_pixel_extend(in, i-shift+l, j-shift+m, k);
-                            float val_kernel = get_pixel(kernel, l, m, convolve_single_channel ? 0 : k);
-                            sum += val_image*val_kernel;
-                        }
-                    }
-                    set_pixel(out, i, j, k, sum);
-                }
-            }
-        }
-    } 
-    else {
-        for (int i = 0; i < in.w; ++i) {
-            for (int j = 0; j < in.h; ++j) {
-                float sum = 0;
-                for (int k = 0; k < in.c; ++k) {
-                    for (int l = 0; l < kernel.w; ++l) {
-                        for (int m = 0; m < kernel.h; m++) {
-                            float val_image = get_pixel_extend(in, i-shift+l, j-shift+m, k);
-                            float val_kernel = get_pixel(kernel, l, m, convolve_single_channel ? 0 : k);
-                            sum += val_image*val_kernel;
-                        }
+    assert(in.c == kernel.c || kernel.c == 1);
+    bool single_channel = kernel.c == 1;
+    *out = make_image(in.w, in.h, preserve ? in.c : 1);
+    for(int k = 0; k < in.c; ++k) {
+        int kernel_channel = single_channel ? 0 : k, out_channel = preserve ? k : 0;
+        for(int j = 0; j < in.h; ++j) {
+            for(int i = 0; i < in.w; ++i) {
+                for(int dy = 0; dy < kernel.h; ++dy) {
+                    for(int dx = 0; dx < kernel.w; ++dx) {
+                        float weight = get_pixel(kernel, dx, dy, kernel_channel);
+                        float val = get_pixel_extend(in, i-kernel.w/2+dx, j-kernel.h/2+dy, k);
+                        add_pixel(out, i, j, out_channel, val*weight);
                     }
                 }
-                set_pixel(out, i, j, 0, sum);
             }
         }
     }
