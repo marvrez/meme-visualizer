@@ -215,6 +215,21 @@ void save_image_jpg(const image_t& m, const char* filename, int quality)
     if(!success) fprintf(stderr, "Failed to write image %s\n", buffer);
 }
 
+void l1_normalize(image_t* im)
+{
+    float sum = 0;
+    for(int i = 0; i < im->w*im->h*im->c; ++i) sum += im->data[i];
+    for(int i = 0; i < im->w*im->h*im->c; ++i) im->data[i] /= sum;
+}
+
+void l2_normalize(image_t* im)
+{
+    float sum = 0;
+    for(int i = 0; i < im->w*im->h*im->c; ++i) sum += im->data[i]*im->data[i];
+    sum = sqrtf(sum);
+    for(int i = 0; i < im->w*im->h*im->c; ++i) im->data[i] /= sum;
+}
+
 void convolve_image(const image_t& in, const image_t& kernel, image_t* out, bool preserve)
 {
     assert(in.c == kernel.c || kernel.c == 1);

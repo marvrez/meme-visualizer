@@ -27,6 +27,9 @@ void scale_image(image_t* m, float s);
 void translate_image(image_t* m, float s);
 void fill_image(image_t* m, float s);
 
+void l1_normalize(image_t* im);
+void l2_normalize(image_t* im);
+
 void threshold_image(const image_t& in_rgb, image_t* out_gray, float thresh);
 void threshold_image(const image_t& in_rgb, image_t* out_gray, float rt, float gt, float bt, float dt);
 
