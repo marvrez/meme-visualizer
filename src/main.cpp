@@ -1,5 +1,6 @@
 #include "vdb/vdb.h"
 #include "image.h"
+#include "filter_image.h"
 #include "color_utils.h"
 #include "pca.h"
 #include "matrix.h"

@@ -90,6 +90,16 @@ VDBB("Image processing");
         }
         ImGui::SameLine();
         ImGui::Checkbox("Preserve channel", &preserve);
+
+        static const char* items[] = { "emboss", "gx", "gy", "highpass", "box", "horizontal", "vertical", "right diagonal", "left diagonal", "sharpen", "smoothen", "gaussian" };
+        static int curr_item = -1, prev_item = -1;
+
+        ImGui::Combo("predefined filters", &curr_item, items, IM_ARRAYSIZE(items));   // Combo using proper array. You can also pass a callback to retrieve array value, no need to create/copy an array just for that.
+        if(curr_item != prev_item) {
+            filter_type_t f = get_filter_type(items[curr_item]);
+            kernel = get_filter(f);
+        }
+        prev_item = curr_item;
     }
 
     if(colored_button("Find components", 0.25f)) {
