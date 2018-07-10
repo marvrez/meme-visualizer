@@ -81,4 +81,29 @@ typedef struct {
 							// 0 if svm_model is created by svm_train
 } svm_model_t;
 
+svm_model_t* svm_train(const svm_problem_t& prob, const svm_parameter_t& param);
+void svm_cross_validation(const svm_problem_t& prob, const svm_parameter_t& param, int nr_fold, std::vector<double>* target);
+void svm_leave_one_in(const svm_problem_t& prob, const svm_parameter_t& param, int nr_fold, std::vector<double>* errors);
+void svm_leave_one_out(const svm_problem_t& prob, const svm_parameter_t& param, int nr_fold, std::vector<double>* errors);
+
+int	svm_save_model(const char* model_file_name, const svm_model_t& model);
+svm_model_t* svm_load_model(const char* model_file_name);
+
+int	svm_save_model_binary(const char* model_file_name, const svm_model_t& model);
+svm_model_t* svm_load_model_binary(const char* model_file_name);
+
+int	svm_get_svm_type(const svm_model_t& model);
+int svm_get_nr_class(const svm_model_t& model);
+std::vector<int> svm_get_labels(const svm_model_t& model);
+double svm_get_svr_probability(const svm_model_t& model);
+double svm_get_dual_objective_function(const svm_model_t& svm);
+
+void svm_predict_values(const svm_model_t& model, const svm_node_t& x, std::vector<double>* dec_values);
+double svm_predict(const svm_model_t& model, const svm_node_t& x);
+void svm_predict_votes(const svm_model_t& model, const svm_node_t& x, std::vector<double>* votes);
+double svm_predict_probability(const svm_model_t& model, const svm_node_t& x, std::vector<double>* prob_estimates);
+
+const char* svm_check_parameter(const svm_problem_t& prob, const svm_parameter_t& param);
+bool svm_check_probability_model(const svm_model_t& model);
+
 #endif
