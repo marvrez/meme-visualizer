@@ -59,7 +59,7 @@ typedef struct {
 	int probability;		/* do probability estimates */
 
     svm_parameter_t() : kernel_weight(0), weight_label(0), weight(0), kernel_dim(0), nr_weight(0) { }
-    svm_parameter_t& operator= (const svm_parameter_t &param);
+    svm_parameter_t& operator= (const svm_parameter_t& param);
 } svm_parameter_t;
 
 typedef struct {
@@ -81,10 +81,89 @@ typedef struct {
 							// 0 if svm_model is created by svm_train
 } svm_model_t;
 
+// Kernel evaluation:
+// the static method k_function is for doing single kernel evaluation
+// the constructor of Kernel prepares to calculate the l*l kernel matrix
+// the member function get_Q is for getting one column from the Q Matrix
+class QMatrix {
+public:
+	virtual float* get_q(int column, int len) const = 0;
+	virtual float* get_qd() const = 0;
+	virtual void swap_index(int i, int j) const = 0;
+	virtual ~QMatrix() {}
+};
+
+// Kernel Cache:
+// l is the number of total data items
+// size is the cache size limit in bytes
+class Cache {
+public:
+	Cache(int l, long long size);
+
+	// request data [0,len)
+	// return some position p where [p,len) need to be filled
+	// (p >= len if nothing needs to be filled)
+	int get_data(const int index, float** data, int len);
+	void swap_index(int i, int j);	// future_option
+private:
+	int m_l;
+	long long m_size;
+
+	typedef struct { // a circular list
+        head_t* prev, *next;	
+        int len; // data[0,len)
+        std::vector<float> data;
+	} head_t ;
+
+	head_t* m_head;
+	head_t m_lru_head;
+	void lru_delete(head_t* h);
+	void lru_insert(head_t* h);
+};
+
+class Kernel: public QMatrix {
+public:
+	Kernel(int l, svm_node* const* x, const svm_parameter_t& param);
+	virtual ~Kernel();
+
+	static float k_function(const std::vector<svm_node_t>& x, const std::vector<svm_node_t>& y, const svm_parameter_t& param);
+
+	virtual float* get_q(int column, int len) const = 0;
+	virtual float* get_qd() const = 0;
+	virtual void swap_index(int i, int j) const;
+
+protected:
+	float (Kernel::*kernel_function)(int i, int j) const;
+
+private:
+	const svm_node** m_x;
+    std::vector<float> m_x_square;
+    std::vector<float> m_kernel_weight;
+	int m_dim;
+
+	// svm_parameters
+	const int m_kernel_type;
+	const int m_degree;
+	const float m_gamma;
+	const float m_coef0;
+	float m_kernel_norm;
+
+	static float dot(const svm_node_t* px, const svm_node_t* py);
+	static float dot(const svm_node_t* px, const svm_node_t* py, const std::vector<float>& weight);
+	static float matrix(const svm_node_t* px, const svm_node_t* py, const std::vector<float>& W, int dim);
+	float kernel_linear(int i, int j) const;
+	float kernel_poly(int i, int j) const;
+	float kernel_rbf(int i, int j) const;
+	float kernel_rbf_weight(int i, int j) const;
+	float kernel_rbf_w(int i, int j) const;
+	float kernel_sigmoid(int i, int j) const;
+	float kernel_precomputed(const int i, int j) const;
+};
+
 svm_model_t* svm_train(const svm_problem_t& prob, const svm_parameter_t& param);
-void svm_cross_validation(const svm_problem_t& prob, const svm_parameter_t& param, int nr_fold, std::vector<double>* target);
-void svm_leave_one_in(const svm_problem_t& prob, const svm_parameter_t& param, int nr_fold, std::vector<double>* errors);
-void svm_leave_one_out(const svm_problem_t& prob, const svm_parameter_t& param, int nr_fold, std::vector<double>* errors);
+void svm_cross_validation(const svm_problem_t& prob, const svm_parameter_t& param, int num_fold, std::vector<float>* target);
+void svm_leave_one_in(const svm_problem_t& prob, const svm_parameter_t& param, int num_fold, std::vector<float>* errors);
+void svm_leave_one_out(const svm_problem_t& prob, const svm_parameter_t& param, int num_fold, std::vector<float>* errors);
 
 int	svm_save_model(const char* model_file_name, const svm_model_t& model);
 svm_model_t* svm_load_model(const char* model_file_name);
@@ -95,13 +174,13 @@ svm_model_t* svm_load_model_binary(const char* model_file_name);
 int	svm_get_svm_type(const svm_model_t& model);
 int svm_get_nr_class(const svm_model_t& model);
 std::vector<int> svm_get_labels(const svm_model_t& model);
-double svm_get_svr_probability(const svm_model_t& model);
-double svm_get_dual_objective_function(const svm_model_t& svm);
+float svm_get_svr_probability(const svm_model_t& model);
+float svm_get_dual_objective_function(const svm_model_t& svm);
 
-void svm_predict_values(const svm_model_t& model, const svm_node_t& x, std::vector<double>* dec_values);
-double svm_predict(const svm_model_t& model, const svm_node_t& x);
-void svm_predict_votes(const svm_model_t& model, const svm_node_t& x, std::vector<double>* votes);
-double svm_predict_probability(const svm_model_t& model, const svm_node_t& x, std::vector<double>* prob_estimates);
+void svm_predict_values(const svm_model_t& model, const svm_node_t& x, std::vector<float>* dec_values);
+float svm_predict(const svm_model_t& model, const svm_node_t& x);
+void svm_predict_votes(const svm_model_t& model, const svm_node_t& x, std::vector<float>* votes);
+float svm_predict_probability(const svm_model_t& model, const svm_node_t& x, std::vector<float>* prob_estimates);
 
 const char* svm_check_parameter(const svm_problem_t& prob, const svm_parameter_t& param);
 bool svm_check_probability_model(const svm_model_t& model);
