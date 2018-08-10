@@ -3,3 +3,4 @@ Visualize different ML and image processing memes
 
 TODO:
 * SVM
+* (H)DBSCAN
