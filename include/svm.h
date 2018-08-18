@@ -3,7 +3,7 @@
 
 #include <vector>
 
-// the implementation is basically a simplification of the already simple libsvm
+// the implementation is basically a simplification of libsvm
 // found in https://github.com/cjlin1/libsvm
 
 typedef struct {
@@ -35,7 +35,7 @@ typedef enum {
     PRECOMPUTED 
 } kernel_type_t; 
 
-typedef struct {
+struct svm_parameter_t {
 	svm_type_t svm_type;
     kernel_type_t kernel_type;
 	int degree;				/* for poly */
@@ -43,7 +43,7 @@ typedef struct {
 	float coef0;			/* for poly/sigmoid */
     std::vector<float> kernel_weight;	/* for rbfweight/rbfwmatrix */
 	int kernel_dim;			/* for rbfweight/rbfwmatrix */
-	bool normalizeKernel;
+	bool normalize_kernel;
 	float kernel_norm;
 
 	/* these are for training only */
@@ -58,9 +58,9 @@ typedef struct {
 	int shrinking;			/* use the shrinking heuristics */
 	int probability;		/* do probability estimates */
 
-    svm_parameter_t() : kernel_weight(0), weight_label(0), weight(0), kernel_dim(0), nr_weight(0) { }
+    svm_parameter_t() : kernel_weight(0), weight_label(0), weight(0), kernel_dim(0), nr_weight(0) { };
     svm_parameter_t& operator= (const svm_parameter_t& param);
-} svm_parameter_t;
+};
 
 typedef struct {
 	svm_parameter_t param;	// parameter
@@ -99,21 +99,23 @@ public:
 class Cache {
 public:
 	Cache(int l, long long size);
+	~Cache() { delete[] m_head; };
 
 	// request data [0,len)
 	// return some position p where [p,len) need to be filled
 	// (p >= len if nothing needs to be filled)
-	int get_data(const int index, float** data, int len);
+	int get_data(const int index, std::vector<float>* data, int len);
 	void swap_index(int i, int j);	// future_option
 private:
-	int m_l;
-	long long m_size;
+	const int m_l;
+	long long m_cache_mem_size;
 
-	typedef struct { // a circular list
+    // Circular LRU linked list implementation
+	struct head_t { 
         head_t* prev, *next;	
         int len; // data[0,len)
         std::vector<float> data;
-	} head_t ;
+	};
 
 	head_t* m_head;
 	head_t m_lru_head;
@@ -123,20 +125,20 @@ private:
 
 class Kernel: public QMatrix {
 public:
-	Kernel(int l, svm_node* const* x, const svm_parameter_t& param);
-	virtual ~Kernel();
+	Kernel(int l, svm_node_t* const* x, const svm_parameter_t& param);
+	virtual ~Kernel() { delete[] m_x; };
 
-	static float k_function(const std::vector<svm_node_t>& x, const std::vector<svm_node_t>& y, const svm_parameter_t& param);
+	static float k_function(const svm_node_t* x, const svm_node_t* y, const svm_parameter_t& param);
 
 	virtual float* get_q(int column, int len) const = 0;
 	virtual float* get_qd() const = 0;
-	virtual void swap_index(int i, int j) const;
+	virtual void swap_index(int i, int j);
 
 protected:
 	float (Kernel::*kernel_function)(int i, int j) const;
 
 private:
-	const svm_node** m_x;
+	const svm_node_t** m_x;
     std::vector<float> m_x_square;
     std::vector<float> m_kernel_weight;
 	int m_dim;
@@ -144,7 +146,7 @@ private:
 	// svm_parameters
 	const int m_kernel_type;
 	const int m_degree;
-	const float m_gamma;
+	const float m_gamma; // same as 1 / 2*sigma^2
 	const float m_coef0;
 	float m_kernel_norm;
 
@@ -182,7 +184,7 @@ float svm_predict(const svm_model_t& model, const svm_node_t& x);
 void svm_predict_votes(const svm_model_t& model, const svm_node_t& x, std::vector<float>* votes);
 float svm_predict_probability(const svm_model_t& model, const svm_node_t& x, std::vector<float>* prob_estimates);
 
-const char* svm_check_parameter(const svm_problem_t& prob, const svm_parameter_t& param);
+
 bool svm_check_probability_model(const svm_model_t& model);
 
 #endif
