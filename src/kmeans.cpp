@@ -100,7 +100,7 @@ bool kmeans_expectation(matrix_t data, model_t* model, kmeans_metric_t metric)
     bool converged = true;
     for(int i = 0; i < data.rows; ++i) {
         auto closest = get_closest_center(data.vals[i], model->centers, metric);
-        float closest_center_idx = closest.first;
+        int closest_center_idx = closest.first;
         if(closest_center_idx != model->assignments[i]) converged = false;
         model->assignments[i] = closest_center_idx;
     }

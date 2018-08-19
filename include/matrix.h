@@ -46,7 +46,6 @@ matrix_t transpose_matrix(const matrix_t& m);
 matrix_t elmult_matrix(const matrix_t& a, const matrix_t& b);
 void scale_matrix(matrix_t* m, float scale_val);
 
-
 // more specialized linalg stuff
 void jacobi_eigenvalue(matrix_t* m, std::vector<float>& eigen_vals, matrix_t* eigen_vecs, int max_iter = 100);
 

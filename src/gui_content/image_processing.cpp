@@ -8,7 +8,7 @@ VDBB("Image processing");
 
     constexpr int KERNEL_SIZE = 3;
     static bool preserve = false;
-    static image_t kernel = make_image(KERNEL_SIZE, KERNEL_SIZE, 1);
+    static image_t filter = make_image(KERNEL_SIZE, KERNEL_SIZE, 1);
 
     bool load_button_pressed = colored_button("Load image", 0.125f);
 
@@ -80,12 +80,12 @@ VDBB("Image processing");
     }
 
     if(ImGui::CollapsingHeader("Convolutions")) {
-        ImGui::SliderFloat3("",   &kernel.data[0], -10.0f, 10.0f);
-        ImGui::SliderFloat3(" ",  &kernel.data[KERNEL_SIZE], -10.0f, 10.0f);
-        ImGui::SliderFloat3("  ", &kernel.data[2*KERNEL_SIZE], -10.0f, 10.0f);
+        ImGui::SliderFloat3("",   &filter.data[0], -10.0f, 10.0f);
+        ImGui::SliderFloat3(" ",  &filter.data[KERNEL_SIZE], -10.0f, 10.0f);
+        ImGui::SliderFloat3("  ", &filter.data[2*KERNEL_SIZE], -10.0f, 10.0f);
 
         if(colored_button("Convolve", 0.62f)) {
-            convolve_image(loaded_image, kernel, &screen_image, preserve);
+            convolve_image(loaded_image, filter, &screen_image, preserve);
             data_format = preserve ? GL_RGB : GL_LUMINANCE;
         }
         ImGui::SameLine();
@@ -97,7 +97,7 @@ VDBB("Image processing");
         ImGui::Combo("predefined filters", &curr_item, items, IM_ARRAYSIZE(items));   // Combo using proper array. You can also pass a callback to retrieve array value, no need to create/copy an array just for that.
         if(curr_item != prev_item) {
             filter_type_t f = get_filter_type(items[curr_item]);
-            kernel = get_filter(f);
+            filter = get_filter(f);
         }
         prev_item = curr_item;
     }
