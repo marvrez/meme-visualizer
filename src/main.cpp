@@ -22,14 +22,40 @@
 typedef enum {
     KMEANS_CLUSTER,
     KMEANS_CENTROID,
-    SVM_POSITIVE,
-    SVM_NEGATIVE,
+    SVM_POSITIVE_EXAMPLE,
+    SVM_NEGATIVE_EXAMPLE,
     PLAIN_DATA
 } data_type_t;
 
 static std::map<std::vector<float>, data_type_t> data_types;
 static std::map<std::vector<float>, color_t> centroid_colors, cluster_data_colors;
 constexpr float RADIUS = 4.0f, HIGHLIGHT_RADIUS = RADIUS * 2, X_RADIUS = 0.01f, LINE_THICKNESS = 2.5f;
+
+matrix_t my_svm_data_init(std::vector<int>* labels)
+{
+    matrix_t data = make_matrix(10, 2);
+    *labels = std::vector<int>(data.rows);
+    data.vals[0]={-0.4326, 1.1909}; data.vals[1]={3.0, 4.0}; data.vals[2]={0.1253, -0.0376};
+    data.vals[3]={0.2877, 0.3273}; data.vals[4]={-1.1465, 0.1746}; data.vals[5]={1.8133, 2.1139};
+    data.vals[6]={2.7258, 3.0668}; data.vals[7]={1.4117, 2.0593}; data.vals[8]={4.1832, 1.9044};
+    data.vals[9]={1.8636, 1.1677};
+
+    float norm = 0.f;
+    for(int i = 0; i < data.rows; ++i) {
+        for(int j = 0; j < data.cols; ++j) {
+            norm += data.vals[i][j]*data.vals[i][j];
+        }
+    }
+    norm = sqrtf(norm);
+    for(int i = 0; i < data.rows; ++i) {
+        for(int j = 0; j < data.cols; ++j) {
+            data.vals[i][j] /= norm;
+        }
+        (*labels)[i] = i < data.rows / 2 ? 1 : -1;
+        data_types[data.vals[i]] = i < 5 ? SVM_POSITIVE_EXAMPLE : SVM_NEGATIVE_EXAMPLE;
+    }
+    return data;
+}
 
 void draw_line(float x1, float y1, float x2, float y2, color_t c) 
 {
@@ -90,23 +116,29 @@ void plot_data_point(const std::vector<float>& data_point)
     auto it = data_types.find(data_point);
     data_type_t type = it != data_types.end() ? it->second : PLAIN_DATA;
 
+    color_t color;
     switch(type) {
         case KMEANS_CENTROID: 
-            draw_x(x, y, X_RADIUS, centroid_colors[data_point]); //{1.0f, 0.5f, 0.2f, 1.0f});
+            color = centroid_colors[data_point]; //{1.0f, 0.5f, 0.2f, 1.0f});
             break;
         case KMEANS_CLUSTER:
-            draw_point(x, y, RADIUS, cluster_data_colors[data_point]); 
+            color = cluster_data_colors[data_point]; 
             break;
-        case SVM_POSITIVE:
-            draw_point(x, y, RADIUS, {0.2f, 0.8f, 0.2f, 1.0f});
+        case SVM_POSITIVE_EXAMPLE:
+            color = {0.2f, 0.8f, 0.2f, 1.0f};  // green
             break;
-        case SVM_NEGATIVE:
-            draw_point(x, y, RADIUS, {0.8f, 0.2f, 0.2f, 1.0f});
+        case SVM_NEGATIVE_EXAMPLE:
+            color = {0.8f, 0.2f, 0.2f, 1.0f};  // red
             break;
         case PLAIN_DATA:
         default:
-            draw_point(x, y, RADIUS, {0.3f, 0.7f, 0.3f, 1.0f});
+            color = {0.3f, 0.7f, 0.3f, 1.0f};
     }
+    if(type == KMEANS_CENTROID) {
+        draw_x(x, y, X_RADIUS, color);
+        return;
+    }
+    draw_point(x, y, RADIUS, color);
 }
 
 void plot_data(const matrix_t& data) 
