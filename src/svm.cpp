@@ -1,12 +1,26 @@
 #include "svm.h"
 
 #include <cassert>
+#include <iostream>
+
+svm_kernel_type_t get_kernel_type(const char* s)
+{
+    if(strcmp(s, "rbf") == 0) return RBF;
+    if(strcmp(s, "linear") == 0) return LINEAR;
+    return LINEAR;
+}
 
 double kernel_linear(const std::vector<double>& v1, const std::vector<double>& v2)
 {
     double result = 0;
     for(int i = 0; i< v1.size(); ++i) result += v1[i] * v2[i];
     return result;
+}
+
+svm_model_t svm_train(const std::vector<std::vector<double> >& datum, const std::vector<int>& labels)
+{
+    svm_parameter_t param;
+    return svm_train({ datum, labels }, param);
 }
 
 double svm_margin(const svm_model_t& model, const std::vector<double>& example) 
@@ -26,7 +40,7 @@ double svm_margin(const svm_model_t& model, const std::vector<double>& example)
     } 
     else {
         for(int i = 0; i < model.N; ++i) {
-            f += model.alpha[i] * model.param.labels[i] * model.kernel(example, model.param.datum[i]);
+            f += model.alpha[i] * model.problem.labels[i] * model.kernel(example, model.problem.datum[i]);
         }
     }
 
@@ -66,7 +80,7 @@ void svm_get_linear_weights(const svm_model_t& model, std::vector<double>* w, do
     for(int j = 0; j < model.D; ++j) {
         double s = 0.f;
         for(int i = 0; i < model.N; ++i) {
-            s += model.alpha[i] * model.param.labels[i] * model.param.datum[i][j];
+            s += model.alpha[i] * model.problem.labels[i] * model.problem.datum[i][j];
         }
         (*w)[j] = s;
     }
