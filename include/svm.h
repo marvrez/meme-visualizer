@@ -1,5 +1,5 @@
 /*
-    This is a binary SVM and is trained using the SMO algorithm.
+    Binary SVM trained using the SMO algorithm.
     Reference: "The Simplified SMO Algorithm" (http://math.unt.edu/~hsp0009/smo.pdf)
 */
 #ifndef SVM_H
@@ -11,7 +11,23 @@ typedef enum {
     LINEAR
 } svm_kernel_type_t;
 
+struct kernel_t;
+typedef struct kernel_t kernel_t;
+
+struct kernel_t {
+    double (*kernel_function)(const kernel_t& kernel, const std::vector<double>& v1, const std::vector<double>& v2);
+    std::vector<std::vector<double> > kernel_cache; // cache kernel computations to avoid expensive recomputations. Could use too much memory if N is too large.
+    std::vector<std::vector<double> >* x; // weights
+    double gamma; // for RBF computation
+};
+
 svm_kernel_type_t get_kernel_type(const char* s);
+double (*get_kernel_function(svm_kernel_type_t type))(const kernel_t&, const std::vector<double>&, const std::vector<double>&);
+
+kernel_t make_kernel(svm_kernel_type_t type, std::vector<std::vector<double> >* x, bool use_cache, double gamma = 0.f);
+double kernel_compute(const kernel_t& kernel, int i, int j);
+double kernel_linear(const kernel_t& kernel, const std::vector<double>& v1, const std::vector<double>& v2);
+double kernel_rbf(const kernel_t& kernel, const std::vector<double>& v1, const std::vector<double>& v2);
 
 typedef struct {
     std::vector<std::vector<double> > datum;
@@ -43,15 +59,11 @@ typedef struct {
     bool use_w = false;  // internal efficiency flag
     std::vector<double> w; // cache weights for linear kernels to speed up evaluation during test time.
 
-    double (*kernel)(const std::vector<double>& v1, const std::vector<double>& v2);
-    std::vector<std::vector<double> > kernel_cache;// cache kernel computations to avoid expensive recomputations. Could use too much memory if N is too large.
+    kernel_t kernel;
 
     svm_problem_t problem; // problem the model was based on
     int num_iter; // number of iterations used to train the model
 } svm_model_t;
-
-double kernel_linear(const std::vector<double>& v1, const std::vector<double>& v2);
-double kernel_rbf(const std::vector<double>& v1, const std::vector<double>& v2);
 
 // data is NxD array of doubles. labels are 1 or -1.
 svm_model_t svm_train(const svm_problem_t& problem, const svm_parameter_t& param);

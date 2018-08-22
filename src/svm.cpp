@@ -1,7 +1,7 @@
 #include "svm.h"
 
 #include <cassert>
-#include <iostream>
+#include <cmath>
 
 svm_kernel_type_t get_kernel_type(const char* s)
 {
@@ -10,11 +10,54 @@ svm_kernel_type_t get_kernel_type(const char* s)
     return LINEAR;
 }
 
-double kernel_linear(const std::vector<double>& v1, const std::vector<double>& v2)
+double (*get_kernel_function(svm_kernel_type_t type))(const kernel_t&, const std::vector<double>&, const std::vector<double>&)
 {
-    double result = 0;
-    for(int i = 0; i< v1.size(); ++i) result += v1[i] * v2[i];
+    switch(type) {
+        case RBF:
+            return kernel_rbf;
+        case LINEAR:
+            return kernel_linear;
+    }
+    return kernel_rbf;
+}
+
+kernel_t make_kernel(svm_kernel_type_t type, std::vector<std::vector<double> >* x, bool use_cache, double gamma)
+{
+    kernel_t kernel;
+    kernel.x = x;
+    kernel.gamma = gamma;
+    kernel.kernel_function = get_kernel_function(type);
+
+    if(use_cache) {
+        kernel.kernel_cache = std::vector<std::vector<double> >(x->size(), std::vector<double>(x->size(), 0));
+        for (int i = 0; i < x->size(); ++i) {
+            for (int j = 0; j < x->size(); ++j) {
+                kernel.kernel_cache[i][j] = kernel.kernel_function(kernel, (*x)[i],(*x)[j]);
+            }
+        }
+    }
+
+    return kernel;
+}
+
+double kernel_compute(const kernel_t& kernel, int i, int j)
+{
+    if(kernel.kernel_cache.size() > 0) return kernel.kernel_cache[i][j];
+    return kernel.kernel_function(kernel, (*kernel.x)[i], (*kernel.x)[j]);
+}
+
+double kernel_linear(const kernel_t& kernel, const std::vector<double>& v1, const std::vector<double>& v2)
+{
+    double result = 0.f;
+    for(int i = 0; i < v1.size(); ++i) result += v1[i] * v2[i];
     return result;
+}
+
+double kernel_rbf(const kernel_t& kernel, const std::vector<double>& v1, const std::vector<double>& v2)
+{
+    double dist_squared = 0.f;
+    for(int i = 0; i < v1.size(); ++i) dist_squared += (v1[i] - v2[i])*(v1[i] - v2[i]);
+    return exp(-kernel.gamma * dist_squared);
 }
 
 svm_model_t svm_train(const std::vector<std::vector<double> >& datum, const std::vector<int>& labels)
@@ -40,7 +83,7 @@ double svm_margin(const svm_model_t& model, const std::vector<double>& example)
     } 
     else {
         for(int i = 0; i < model.N; ++i) {
-            f += model.alpha[i] * model.problem.labels[i] * model.kernel(example, model.problem.datum[i]);
+            f += model.alpha[i] * model.problem.labels[i] * model.kernel.kernel_function(model.kernel, example, model.problem.datum[i]);
         }
     }
 
