@@ -6,7 +6,8 @@ VDBB("Binary SVC");
     static matrix_t svm_data = my_svm_data_init(&labels);
     static svm_parameter_t param;
     static svm_kernel_type_t kernel_type;
-    static float C = 1.0f, rbf_sigma = 1.f;
+    static svm_model_t model;
+    static float C = 1.0f, rbf_sigma = 0.5f;
     static bool svm_need_retrain = true;
 
     vdb2D(-1, +1, -1, +1);
@@ -27,7 +28,7 @@ VDBB("Binary SVC");
     ImGui::TextColored(ImVec4(0,1,0,1), "green"); ImGui::SameLine();
     ImGui::Text("data point."); 
 
-    ImGui::SliderFloat("C", &C, 0.01f, 100.0f, "C = %.3lf");
+    ImGui::SliderFloat("C", &C, -2.f, 2.f, "C = %.3lf");
     param.C = C;
 
     static const char* items[] = {"rbf", "linear"};
@@ -39,7 +40,7 @@ VDBB("Binary SVC");
     }
     prev_item = curr_item;
     if(kernel_type == RBF) {
-        ImGui::SliderFloat("rbf kernel sigma", &rbf_sigma, 0.01f, 100.0f, "rbf_sigma = %.3f");
+        ImGui::SliderFloat("rbf kernel sigma", &rbf_sigma, -2.f, 2.f, "rbf_sigma = %.3f");
         float gamma = 1/(2*rbf_sigma*rbf_sigma);
         svm_need_retrain = gamma != param.gamma ? true : false;
         param.gamma = gamma;
@@ -53,9 +54,6 @@ VDBB("Binary SVC");
         svm_need_retrain = true;
     }
 
-    param.labels = labels;
-    param.datum.reserve(svm_data.rows);
-    for (auto&& v : svm_data.vals) param.datum.emplace_back(std::begin(v), std::end(v));
     plot_data(svm_data);
 
     if(vdbLeftPressed()) {
@@ -70,8 +68,15 @@ VDBB("Binary SVC");
     }
 
     if(svm_need_retrain) {
-        //svm_train(param);
+        static svm_problem_t problem;
+        problem.labels = labels;
+        problem.datum.reserve(svm_data.rows);
+        for (auto&& v : svm_data.vals) problem.datum.emplace_back(std::begin(v), std::end(v));
+
+        model = svm_train(problem.datum, problem.labels);//svm_train(problem, param);
         svm_need_retrain = false;
     }
+
+    ImGui::Text("Took %d iterations to finish training.", model.num_iter);
 }
 VDBE();
