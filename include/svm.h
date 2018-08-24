@@ -54,7 +54,7 @@ typedef struct {
     svm_parameter_t param;
     int N, D; // N is number of data points, D is the dimension of the data
     std::vector<double> alpha;
-    double b = 0; // bias
+    double b = 0.f; // bias
 
     bool use_w = false;  // internal efficiency flag
     std::vector<double> w; // cache weights for linear kernels to speed up evaluation during test time.
@@ -66,7 +66,7 @@ typedef struct {
 } svm_model_t;
 
 // data is NxD array of doubles. labels are 1 or -1.
-svm_model_t svm_train(const svm_problem_t& problem, const svm_parameter_t& param);
+svm_model_t svm_train(svm_problem_t problem, const svm_parameter_t& param);
 svm_model_t svm_train(const std::vector<std::vector<double> >& datum, const std::vector<int>& labels);
 
 // example is an array of length D. Returns margin of given example
