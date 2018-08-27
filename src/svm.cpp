@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
+
 #include "rng.h"
 
 svm_kernel_type_t get_kernel_type(const char* s)
@@ -74,7 +75,7 @@ svm_model_t svm_train(svm_problem_t problem, const svm_parameter_t& param)
     
     // The SMO algorithm
     int iter = 0, passes = 0;
-    RNG rng(0, model.N);
+    RNG rng(0, model.N - 1);
     while(passes < param.num_passes && iter < param.max_iter) {
         int num_alpha_changed = 0;
         for(int i = 0; i < model.N; ++i) {
@@ -117,6 +118,38 @@ svm_model_t svm_train(svm_problem_t problem, const svm_parameter_t& param)
         iter++;
         passes = num_alpha_changed == 0 ? passes + 1 : 0;
     } 
+
+    // Speed up evaluation during test time by caching weights if using linear kernel
+    if(param.kernel_type == LINEAR) {
+        model.w = std::vector<double>(model.D);
+        for(int j = 0; j < model.D; ++j) {
+            double s = 0.0f;
+            for(int i = 0; i < model.N; ++i){
+                s += model.alpha[i] * model.problem.labels[i] * model.problem.datum[i][j];
+            }
+            model.w[j] = s;
+        }
+        model.use_w = true;
+    } 
+    else {
+        // Filter out training data that has alpha[i] = 0, as they are irrelevant for future
+        std::vector<std::vector<double> > new_datum = std::vector<std::vector<double> >();
+        std::vector<int> new_labels = std::vector<int>();
+        std::vector<double> new_alpha= std::vector<double>();
+        for(int i = 0; i < model.N; ++i) {
+            if(model.alpha[i] > param.alpha_tol) {
+                new_datum.push_back(model.problem.datum[i]);
+                new_labels.push_back(model.problem.labels[i]);
+                new_alpha.push_back(model.alpha[i]);
+            }
+        }
+        model.problem.datum = new_datum;
+        model.problem.labels = new_labels;
+        model.alpha = new_alpha;
+        model.N = model.problem.datum.size();
+    }
+
+    model.num_iter = iter;
 
     return model;
 }
