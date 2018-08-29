@@ -162,6 +162,38 @@ void draw_box(image_t* m, int x1, int y1, int x2, int y2, float r, float g, floa
     }
 }
 
+void draw_line(image_t* m, int x1, int y1, int x2, int y2, float r, float g, float b)
+{
+    int dx = abs(x2-x1), dy = abs(y2-y1);
+    bool steep = dy > dx;
+    if(steep) { std::swap(x1,y1); std::swap(x2,y2); std::swap(dx,dy); }
+    int error = (dx+1) / 2, y_step = (y1 < y2) ? 1 : -1;
+
+    for(int x = x1, y = y1; x <= x2; ++x) {
+        int plot_x = steep ? y : x, plot_y = steep ? x : y;
+
+        set_pixel(m, plot_x, plot_y, 0, r);
+        set_pixel(m, plot_x, plot_y, 1, g);
+        set_pixel(m, plot_x, plot_y, 2, b);
+
+        error -= dy;
+        if(error <= 0) { y += y_step; error += dx; }
+    }
+}
+
+void draw_grid(image_t* m, float x_min, float x_max, float y_min, float y_max, int steps, float r, float g, float b)
+{
+    for (int i = 0; i <= steps; i++) {
+        draw_line(m, x_min, y_min + (y_max-y_min)*i/steps,
+                     x_max, y_min + (y_max-y_min)*i/steps,
+                     r, g, b);
+
+        draw_line(m, x_min + (x_max-x_min)*i/steps, y_min,
+                     x_min + (x_max-x_min)*i/steps, y_max,
+                     r, g, b);
+    }
+}
+
 std::vector<unsigned char> get_hwc_bytes(const image_t& m)
 {
     std::vector<unsigned char> bytes(m.c*m.h*m.w, 0);

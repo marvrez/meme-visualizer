@@ -34,6 +34,8 @@ void threshold_image(const image_t& in_rgb, image_t* out_gray, float thresh);
 void threshold_image(const image_t& in_rgb, image_t* out_gray, float rt, float gt, float bt, float dt);
 
 void draw_box(image_t* m, int x1, int y1, int x2, int y2, float r, float g, float b);
+void draw_line(image_t* m, int x1, int y1, int x2, int y2, float r, float g, float b);
+void draw_grid(image_t* m, int x_min, int x_max, int y_min, int y_max, int steps, float r, float g, float b);
 
 // Get HWC(channels interleaved) bytes from CHW(channels separate) float image
 std::vector<unsigned char> get_hwc_bytes(const image_t& m);
