@@ -14,6 +14,7 @@ static inline float randn(float mu = 0, float sigma = -1)
 
 class RNG {
 public:
+    // ranges are inclusive
     RNG(std::pair<int, int> intRange = {0, 100},
         std::pair<float, float> floatRange = {0.0f, 1.0f},
         std::pair<double, double> doubleRange = {0.0, 1.0})
