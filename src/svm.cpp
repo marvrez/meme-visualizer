@@ -100,15 +100,17 @@ svm_model_t svm_train(svm_problem_t problem, const svm_parameter_t& param)
                 // compute new alpha_j and clip it inside [0,C]x[0,C] box
                 // then compute alpha_i based on it.
                 double new_a_j = a_j - problem.labels[j]*(e_i-e_j) / eta;
-                new_a_j = (new_a_j > H) ? H : (new_a_j < L) ? L : new_a_j;
+                if (new_a_j > H)  new_a_j = H;
+                if (new_a_j < L)  new_a_j = L;
                 if(fabs(new_a_j - a_j) < 1e-4) continue;
                 double new_a_i = a_i + problem.labels[i]*problem.labels[j]*(a_j - new_a_j);
                 model.alpha[i] = new_a_i, model.alpha[j] = new_a_j;
 
                 // update the bias term
-                double expr = problem.labels[i]*(new_a_i-a_i)*kernel_compute(model.kernel, i,i) - problem.labels[j]*(new_a_j-a_j)*kernel_compute(model.kernel, i,j);
-                double b1 = model.b - e_i - expr, b2 = model.b - e_j - expr;
-                model.b = 0.5*(b1 + b2);
+                double expr1 = problem.labels[i]*(new_a_i-a_i), expr2 = problem.labels[j]*(new_a_j-a_j);
+                double b1 = model.b - e_i - expr1*kernel_compute(model.kernel, i,i) - expr2*kernel_compute(model.kernel, i,j);
+                double b2 = model.b - e_j - expr1*kernel_compute(model.kernel, i,j) - expr2*kernel_compute(model.kernel, j,j);
+                model.b = (b1 + b2) / 2;
                 if(new_a_i > 0 && new_a_i < param.C) model.b = b1;
                 if(new_a_j > 0 && new_a_j < param.C) model.b = b2;
 
@@ -132,7 +134,7 @@ svm_model_t svm_train(svm_problem_t problem, const svm_parameter_t& param)
         model.use_w = true;
     } 
     else {
-        // Filter out training data that has alpha[i] = 0, as they are irrelevant for future
+        // Filter out training data that has alpha[i] less than alpha_tol, as they are irrelevant for future
         std::vector<std::vector<double> > new_datum = std::vector<std::vector<double> >();
         std::vector<int> new_labels = std::vector<int>();
         std::vector<double> new_alpha= std::vector<double>();
@@ -177,7 +179,8 @@ double svm_margin(const svm_model_t& model, const std::vector<double>& example)
     } 
     else {
         for(int i = 0; i < model.N; ++i) {
-            f += model.alpha[i] * model.problem.labels[i] * model.kernel.kernel_function(model.kernel, example, model.problem.datum[i]);
+            f += model.alpha[i] * model.problem.labels[i] 
+                * model.kernel.kernel_function(model.kernel, example, model.problem.datum[i]);
         }
     }
 
