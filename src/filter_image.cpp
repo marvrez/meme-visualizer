@@ -54,8 +54,8 @@ image_t make_emboss_filter()
 {
     image_t f = make_image(3,3,1);
     f.data[0] = -2; f.data[1] = -1; f.data[2] = 0;
-    f.data[3] = -1; f.data[4] = 1; f.data[5] = 1;
-    f.data[6] = 0; f.data[7] = 1; f.data[8] = 2;
+    f.data[3] = -1; f.data[4] =  1; f.data[5] = 1;
+    f.data[6] =  0; f.data[7] =  1; f.data[8] = 2;
     return f;
 }
 
@@ -63,7 +63,7 @@ image_t make_horizontal_filter()
 {
     image_t f = make_image(3,3,1);
     f.data[0] = -1; f.data[1] = -1; f.data[2] = -1;
-    f.data[3] = 2; f.data[4] = 2; f.data[5] = 2;
+    f.data[3] =  2; f.data[4] =  2; f.data[5] =  2;
     f.data[6] = -1; f.data[7] = -1; f.data[8] = -1;
     return f;
 }
@@ -71,36 +71,36 @@ image_t make_horizontal_filter()
 image_t make_vertical_filter()
 {
     image_t f = make_image(3,3,1);
-    f.data[0] = -1; f.data[1] = 2; f.data[2] = -1;
-    f.data[3] = -1; f.data[4] = 2; f.data[5] = -1;
-    f.data[6] = -1; f.data[7] = 2; f.data[8] = -1;
+    f.data[0] = -1; f.data[1] = 0; f.data[2] = -1;
+    f.data[3] = -1; f.data[4] = 0; f.data[5] = -1;
+    f.data[6] = -1; f.data[7] = 0; f.data[8] = -1;
     return f;
 }
 
 image_t make_right_diag_filter()
 {
     image_t f = make_image(3,3,1);
-    f.data[0] = -1; f.data[1] = -1; f.data[2] = 2;
-    f.data[3] = -1; f.data[4] = 2; f.data[5] = -1;
-    f.data[6] = 2; f.data[7] = -1; f.data[8] = -1;
+    f.data[0] = -1; f.data[1] = -1; f.data[2] =  2;
+    f.data[3] = -1; f.data[4] =  2; f.data[5] = -1;
+    f.data[6] =  2; f.data[7] = -1; f.data[8] = -1;
     return f;
 }
 
 image_t make_left_diag_filter()
 {
     image_t f = make_image(3,3,1);
-    f.data[0] = 2; f.data[1] = -1; f.data[2] = -1;
-    f.data[3] = -1; f.data[4] = 2; f.data[5] = -1;
-    f.data[6] = -1; f.data[7] = -1; f.data[8] = 2;
+    f.data[0] =  2; f.data[1] = -1; f.data[2] = -1;
+    f.data[3] = -1; f.data[4] =  2; f.data[5] = -1;
+    f.data[6] = -1; f.data[7] = -1; f.data[8] =  2;
     return f;
 }
 
 image_t make_highpass_filter()
 {
     image_t f = make_image(3,3,1);
-    f.data[0] = 0; f.data[1] = -1; f.data[2] = 0;
-    f.data[3] = -1; f.data[4] = 4; f.data[5] = -1;
-    f.data[6] = 0; f.data[7] = -1; f.data[8] = 0;
+    f.data[0] =  0; f.data[1] = -1; f.data[2] =  0;
+    f.data[3] = -1; f.data[4] =  4; f.data[5] = -1;
+    f.data[6] =  0; f.data[7] = -1; f.data[8] =  0;
     return f;
 }
 
@@ -128,17 +128,17 @@ image_t make_gy_filter()
 {
     image_t f = make_image(3,3,1);
     f.data[0] = -1; f.data[1] = -2; f.data[2] = -1;
-    f.data[3] = 0; f.data[4] = 0; f.data[5] = 0;
-    f.data[6] = 1; f.data[7] = 2; f.data[8] = 1;
+    f.data[3] =  0; f.data[4] =  0; f.data[5] =  0;
+    f.data[6] =  1; f.data[7] =  2; f.data[8] =  1;
     return f;
 }
 
 image_t make_sharpen_filter()
 {
     image_t f = make_image(3,3,1);
-    f.data[0] = 0; f.data[1] = -1; f.data[2] = 0;
-    f.data[3] = -1; f.data[4] = 1+4; f.data[5] = -1;
-    f.data[6] = 0; f.data[7] = -1; f.data[8] = 0;
+    f.data[0] =  0; f.data[1] = -1; f.data[2] =  0;
+    f.data[3] = -1; f.data[4] =  5; f.data[5] = -1;
+    f.data[6] =  0; f.data[7] = -1; f.data[8] =  0;
     return f;
 }
 
