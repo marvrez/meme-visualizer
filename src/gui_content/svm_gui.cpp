@@ -5,9 +5,8 @@ VDBB("Binary SVC");
     static std::vector<int> labels;
     static matrix_t svm_data = my_svm_data_init(&labels);
     static svm_parameter_t param;
-    static svm_kernel_type_t kernel_type;
     static svm_model_t model;
-    static float C = 1.0f, rbf_sigma = 0.5f;
+    static float C = 1.0f, rbf_sigma = 0.1f;
     static bool svm_need_retrain = true;
 
     vdb2D(-1, +1, -1, +1);
@@ -28,20 +27,20 @@ VDBB("Binary SVC");
     ImGui::TextColored(ImVec4(0,1,0,1), "green"); ImGui::SameLine();
     ImGui::Text("data point."); 
 
-    ImGui::SliderFloat("C", &C, -2.f, 2.f, "C = %.3lf");
+    ImGui::SliderFloat("C", &C, 0.f, 5.f, "C = %.3f");
     svm_need_retrain = C != param.C ? true : svm_need_retrain;
     param.C = C;
 
     static const char* items[] = {"rbf", "linear"};
-    static int curr_item = -1, prev_item = -1;
+    static int curr_item = 0, prev_item = -1;
     ImGui::Combo("kernel type", &curr_item, items, IM_ARRAYSIZE(items)); 
     if(curr_item != prev_item) {
-        kernel_type = get_kernel_type(items[curr_item]);
+        param.kernel_type = get_kernel_type(items[curr_item]);
         svm_need_retrain = true;
     }
     prev_item = curr_item;
-    if(kernel_type == RBF) {
-        ImGui::SliderFloat("rbf kernel sigma", &rbf_sigma, -2.f, 2.f, "rbf_sigma = %.3f");
+    if(param.kernel_type == RBF) {
+        ImGui::SliderFloat("rbf kernel sigma", &rbf_sigma, 0.f, 2.f, "rbf_sigma = %.3f");
         float gamma = 1/(2*rbf_sigma*rbf_sigma);
         svm_need_retrain = gamma != param.gamma ? true : svm_need_retrain;
         param.gamma = gamma;
@@ -57,7 +56,6 @@ VDBB("Binary SVC");
 
     plot_data(svm_data);
 
-
     if(vdbLeftPressed()) {
         ImVec2 mouse = ImGui::GetMousePos();
         std::vector<float> mouse_pos(2);
@@ -71,8 +69,8 @@ VDBB("Binary SVC");
 
     if(svm_need_retrain) {
         static svm_problem_t problem;
+        problem.datum.clear();
         problem.labels = labels;
-        problem.datum.reserve(svm_data.rows);
         for (auto&& v : svm_data.vals) problem.datum.emplace_back(std::begin(v), std::end(v));
 
         model = svm_train(problem, param);
@@ -81,20 +79,18 @@ VDBB("Binary SVC");
 
     ImGui::Text("Took %d iterations to finish training.", model.num_iter);
 
-    constexpr int grid_density = 4;
-    glBegin(GL_QUADS);
-    for(int y = 0; y <= 500; y += 4) {
-        for(int x = 0; x <= 500; x += 4) {
-            std::vector<float> grid_point(2);
+    glPoints(2.f);
+    for(int y = 0; y <= vdb__globals.window_h; y += 4) {
+        for(int x = 0; x <= vdb__globals.window_w; x += 4) {
+            static std::vector<float> grid_point(2);
             vdbWindowToNDC(x, y, &grid_point[0], &grid_point[1]);
             int dec = svm_predict(model, {(double) grid_point[0], (double)grid_point[1]});
-            if(dec == -1) glColor4f(150/255.f, 250/255.f, 150/255.f, .5f);
+            if(dec == POSITIVE_EXAMPLE) glColor4f(150/255.f, 250/255.f, 150/255.f, .5f);
             else glColor4f(250/255.f,150/255.f, 150/255.f, .5f);
-            //vdbFillRect(grid_point[0], grid_point[1], 2, 2);
-            glVertex2f(grid_point[0],    grid_point[1]);
-            glVertex2f(grid_point[0]+.1f, grid_point[1]);
-            glVertex2f(grid_point[0]+.1f, grid_point[1]-.1f);
-            glVertex2f(grid_point[0],    grid_point[1]-.1f);
+            if(grid_point[0] == svm_data.vals[0][0] && grid_point[1] == svm_data.vals[0][1]){
+                printf("AHHH %d", dec);
+            } 
+            glVertex2f(grid_point[0], grid_point[1]);
         }
     }
     glEnd();
