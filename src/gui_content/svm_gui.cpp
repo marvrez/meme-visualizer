@@ -87,9 +87,6 @@ VDBB("Binary SVC");
             int dec = svm_predict(model, {(double) grid_point[0], (double)grid_point[1]});
             if(dec == POSITIVE_EXAMPLE) glColor4f(150/255.f, 250/255.f, 150/255.f, .5f);
             else glColor4f(250/255.f,150/255.f, 150/255.f, .5f);
-            if(grid_point[0] == svm_data.vals[0][0] && grid_point[1] == svm_data.vals[0][1]){
-                printf("AHHH %d", dec);
-            } 
             glVertex2f(grid_point[0], grid_point[1]);
         }
     }
