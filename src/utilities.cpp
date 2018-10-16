@@ -13,7 +13,7 @@ std::vector<float> linspace(float start, float stop, unsigned int num)
     return ret;
 }
 
-double what_time_is_it_now()
+double time_now()
 {
     timeval time;
     if (gettimeofday(&time,NULL)) return 0;
