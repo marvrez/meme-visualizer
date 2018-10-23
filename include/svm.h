@@ -34,8 +34,6 @@ typedef struct {
     std::vector<int> labels;
 } svm_problem_t;
 
-svm_problem_t make_svm_problem(const std::vector<std::vector<double> >& datum, const std::vector<int>& labels);
-
 typedef struct {
     double C = 1.0f; // regularization parameter
     double tol = 1e-4; // numerical tolerance. Don't touch unless you're pro. Other usual values are between 1e-2 and 1e-3 
@@ -66,6 +64,9 @@ typedef struct {
     svm_problem_t problem; // problem the model was based on
     int num_iter; // number of iterations used to train the model
 } svm_model_t;
+
+svm_problem_t svm_make_problem(const std::vector<std::vector<double> >& datum, const std::vector<int>& labels);
+svm_model_t svm_make_model(svm_problem_t problem, const svm_parameter_t& param);
 
 // data is NxD array of doubles. labels are 1 or -1.
 svm_model_t svm_train(svm_problem_t problem, const svm_parameter_t& param);

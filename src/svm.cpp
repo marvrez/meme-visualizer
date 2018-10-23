@@ -7,14 +7,6 @@
 
 #include "rng.h"
 
-svm_problem_t make_svm_problem(const std::vector<std::vector<double> >& datum, const std::vector<int>& labels)
-{
-    svm_problem_t problem;
-    problem.datum  = datum;
-    problem.labels = labels;
-    return problem;
-}
-
 svm_kernel_type_t get_kernel_type(const char* s)
 {
     if(strcmp(s, "rbf") == 0) return RBF;
@@ -72,7 +64,15 @@ double kernel_rbf(const kernel_t& kernel, const std::vector<double>& v1, const s
     return exp(-kernel.gamma * dist_squared);
 }
 
-svm_model_t svm_train(svm_problem_t problem, const svm_parameter_t& param)
+svm_problem_t svm_make_problem(const std::vector<std::vector<double> >& datum, const std::vector<int>& labels)
+{
+    svm_problem_t problem;
+    problem.datum  = datum;
+    problem.labels = labels;
+    return problem;
+}
+
+svm_model_t svm_make_model(svm_problem_t problem, const svm_parameter_t& param)
 {
     svm_model_t model;
     model.param = param;
@@ -80,6 +80,12 @@ svm_model_t svm_train(svm_problem_t problem, const svm_parameter_t& param)
     model.kernel = make_kernel(param.kernel_type, &problem.datum, param.do_cache, param.gamma);
     model.N = problem.datum.size(), model.D = problem.datum[0].size();
     model.alpha = std::vector<double>(model.N, 0.f);
+    return model;
+}
+
+svm_model_t svm_train(svm_problem_t problem, const svm_parameter_t& param)
+{
+    svm_model_t model = svm_make_model(problem, param);
     
     // The SMO algorithm
     int iter = 0, passes = 0;
