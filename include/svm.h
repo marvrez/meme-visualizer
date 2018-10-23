@@ -34,6 +34,8 @@ typedef struct {
     std::vector<int> labels;
 } svm_problem_t;
 
+svm_problem_t make_svm_problem(const std::vector<std::vector<double> >& datum, const std::vector<int>& labels);
+
 typedef struct {
     double C = 1.0f; // regularization parameter
     double tol = 1e-4; // numerical tolerance. Don't touch unless you're pro. Other usual values are between 1e-2 and 1e-3 

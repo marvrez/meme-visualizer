@@ -7,6 +7,14 @@
 
 #include "rng.h"
 
+svm_problem_t make_svm_problem(const std::vector<std::vector<double> >& datum, const std::vector<int>& labels)
+{
+    svm_problem_t problem;
+    problem.datum  = datum;
+    problem.labels = labels;
+    return problem;
+}
+
 svm_kernel_type_t get_kernel_type(const char* s)
 {
     if(strcmp(s, "rbf") == 0) return RBF;
