@@ -4,6 +4,7 @@
 #include <functional>
 #include <random>
 #include <string>
+#include <algorithm>
 
 static inline float randn(float mu = 0, float sigma = -1) 
 {
