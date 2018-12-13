@@ -42,16 +42,16 @@ VDBB("Regression");
     ImGui::SameLine();
     if(colored_button("Run", 2.f/7.f)) {
         model = make_regression_model(learning_rate, reg_type);
-        regression_train(&model, );
+        //regression_train(&model, );
         is_trained = true;
     }
 
     plot_data(data);
 
     if(is_trained) {
-        if(type == REGRESSION_LOGISTIC) {
+        if(reg_type == REGRESSION_LOGISTIC) {
         }
-        else if(type == REGRESSION_LINEAR) {
+        else if(reg_type == REGRESSION_LINEAR) {
         }
     }
 }
