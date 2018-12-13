@@ -7,6 +7,7 @@
 #include "data_gen.h"
 #include "kmeans.h"
 #include "svm.h"
+#include "regression.h"
 #include "rng.h"
 #include "connected_components.h"
 
@@ -353,6 +354,8 @@ int main(int, char **)
     #include "gui_content/image_processing.cpp"
 
     #include "gui_content/svm_gui.cpp"
+
+    #include "gui_content/regression_gui.cpp"
 
     return 0;
 }
