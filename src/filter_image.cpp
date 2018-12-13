@@ -1,6 +1,7 @@
 #include "filter_image.h"
 
-#include <math.h>
+#include <cstring>
+#include <cmath>
 
 filter_type_t get_filter_type(const char* s) 
 {
