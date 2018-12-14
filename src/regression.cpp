@@ -1,5 +1,8 @@
 #include "regression.h"
 
+#include <cassert>
+#include <cstring>
+
 float hypothesis_linear(const std::vector<float>& x, const std::vector<float>& theta)
 {
     float sum = theta[0];
