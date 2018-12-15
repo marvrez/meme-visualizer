@@ -7,7 +7,7 @@ float hypothesis_linear(const std::vector<float>& x, const std::vector<float>& t
 {
     float sum = theta[0];
     for(int i = 0; i < x.size(); ++i) {
-        sum += x[i] * theta[i+1];
+        sum += x[i]*theta[i+1];
     }
     return sum;
 }
@@ -72,9 +72,9 @@ float regression_train(regression_model_t* model, const std::vector<std::vector<
     int n = x.size(), d = x[0].size();
     float loss_sum = 0, curr_loss = 0, prev_loss = -1, tol = 1e-4;
 
-    model->theta = std::vector<float>(0, x[0].size()+1); // +1 for bias
+    model->theta = std::vector<float>(d+1, 0.f); // +1 for bias
 
-    float (*hypothesis)(const std::vector<float>&, 
+    float (*hypothesis)(const std::vector<float>&,
                 const std::vector<float>&) = get_hypothesis_function(model->type);
     float (*cost_function)(float, float) = get_cost_function(model->type);
 
@@ -85,8 +85,8 @@ float regression_train(regression_model_t* model, const std::vector<std::vector<
             float error = pred - y[i];
             // Gradient descent: update each parameters to minimize error
             model->theta[0] = model->theta[0] - model->learning_rate*error; // update bias separately
-            for(int j = 1; j < d; ++i) {
-                model->theta[i] = model->theta[i] - model->learning_rate*error*x[i][j];
+            for(int j = 1; j < d+1; ++j) {
+                model->theta[j] = model->theta[j] - model->learning_rate*error*x[i][j-1];
             }
             curr_loss = cost_function(pred, y[i]);
             loss_sum += curr_loss;

@@ -42,7 +42,24 @@ VDBB("Regression");
     ImGui::SameLine();
     if(colored_button("Run", 2.f/7.f)) {
         model = make_regression_model(learning_rate, reg_type);
-        //regression_train(&model, );
+        std::vector<std::vector<float> > x(data.rows);
+        std::vector<float> y(data.rows);
+
+        if(reg_type == REGRESSION_LINEAR) {
+            for(int i = 0; i < data.rows; ++i) {
+                x[i] = { data.vals[i][0] };
+                y[i] = data.vals[i][1];
+            }
+        }
+        else if(reg_type == REGRESSION_LOGISTIC) {
+            for(int i = 0; i < data.rows; ++i) {
+                x[i] = data.vals[i];
+                y[i] = (x[i][1] > beta*x[i][0] + mu) ? REGRESSION_POSITIVE_EXAMPLE : REGRESSION_NEGATIVE_EXAMPLE;
+            }
+        }
+        float error = regression_train(&model, x, y);
+        printf("Final error: %.3f\n", error);
+        printf("bias=%.3f, weight=%.3f\n", model.theta[0], model.theta[1]);
         is_trained = true;
     }
 
@@ -52,6 +69,14 @@ VDBB("Regression");
         if(reg_type == REGRESSION_LOGISTIC) {
         }
         else if(reg_type == REGRESSION_LINEAR) {
+            glPoints(2.f);
+            glColor4f(1.f, 0.f, 0.f, 1.f);
+            for(int x = 0; x <= vdb__globals.window_w; x += 2) {
+                float x_normalized = -1.0f + 2.0f * x / vdb__globals.window_w;
+                float y_pred = regression_predict(model, { x_normalized });
+                glVertex2f(x_normalized, y_pred);
+            }
+            glEnd();
         }
     }
 }
