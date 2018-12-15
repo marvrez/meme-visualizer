@@ -32,6 +32,7 @@ VDBB("Regression");
     ImGui::Combo("regression type", &curr_item, items, IM_ARRAYSIZE(items)); 
     if(curr_item != prev_item) {
         reg_type = get_regression_type(items[curr_item]);
+        is_trained = false;
     }
     prev_item = curr_item;
 
@@ -52,14 +53,19 @@ VDBB("Regression");
             }
         }
         else if(reg_type == REGRESSION_LOGISTIC) {
+            x = data.vals;
             for(int i = 0; i < data.rows; ++i) {
-                x[i] = data.vals[i];
-                y[i] = (x[i][1] > beta*x[i][0] + mu) ? REGRESSION_POSITIVE_EXAMPLE : REGRESSION_NEGATIVE_EXAMPLE;
+                y[i] = (x[i][1] > beta*x[i][0]) ? 1 : 0;
             }
         }
         float error = regression_train(&model, x, y);
         printf("Final error: %.3f\n", error);
-        printf("bias=%.3f, weight=%.3f\n", model.theta[0], model.theta[1]);
+        if(reg_type==REGRESSION_LOGISTIC) {
+            printf("bias=%.3f, weight=%.3f, weight2=%.3f\n", model.theta[0], model.theta[1], model.theta[2]);
+        }
+        else if(reg_type==REGRESSION_LINEAR) {
+            printf("bias=%.3f, weight=%.3f\n", model.theta[0], model.theta[1]);
+        }
         is_trained = true;
     }
 
@@ -67,6 +73,18 @@ VDBB("Regression");
 
     if(is_trained) {
         if(reg_type == REGRESSION_LOGISTIC) {
+            glPoints(2.f);
+            for(int y = 0; y <= vdb__globals.window_h; y += 4) {
+                for(int x = 0; x <= vdb__globals.window_w; x += 4) {
+                    static std::vector<float> grid_point(2);
+                    vdbWindowToNDC(x, y, &grid_point[0], &grid_point[1]);
+                    float pred = regression_predict(model, grid_point);
+                    if(pred >= 0.5) glColor4f(150/255.f, 250/255.f, 150/255.f, .5f);
+                    else glColor4f(250/255.f,150/255.f, 150/255.f, .5f);
+                    glVertex2f(grid_point[0], grid_point[1]);
+                }
+            }
+            glEnd();
         }
         else if(reg_type == REGRESSION_LINEAR) {
             glPoints(2.f);

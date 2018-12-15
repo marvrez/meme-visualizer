@@ -10,6 +10,7 @@ You can currently do the following:
 * Find connected components in an image, based on its colors.
 * Apply predefined convolution filters or customize your own filters.
 * Visualize how the margins an SVM creates using either a gaussian or linear kernel changes when you add points and/or adjust an SVM's parameters.
+* Generate linear data and perform linear or logistic regression on it
 
 ## Installation
 
@@ -32,5 +33,3 @@ If the project is sucessfully built, you can run the program by using the follow
 
 TODO:
 * (H)DBSCAN
-* Linear regresson
-* HMM?
