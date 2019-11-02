@@ -84,7 +84,7 @@ VDBB("Binary SVC");
         for(int x = 0; x <= vdb__globals.window_w; x += 4) {
             static std::vector<float> grid_point(2);
             vdbWindowToNDC(x, y, &grid_point[0], &grid_point[1]);
-            int dec = svm_predict(model, {(double) grid_point[0], (double)grid_point[1]});
+            int dec = svm_predict(model, { grid_point[0], grid_point[1]});
             if(dec == POSITIVE_EXAMPLE) glColor4f(150/255.f, 250/255.f, 150/255.f, .5f);
             else glColor4f(250/255.f,150/255.f, 150/255.f, .5f);
             glVertex2f(grid_point[0], grid_point[1]);
