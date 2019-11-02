@@ -244,7 +244,7 @@ int main(int, char **)
 
         if (ImGui::CollapsingHeader("Covariance data")) {
             static float var[2] = {0.2f, 0.2f};
-            ImGui::SliderFloat2("x- and y-variance", var, -0.5f, 0.5f);
+            ImGui::SliderFloat2("x- and y-variance", var, 0.f, 2.f);
             ImGui::SameLine(); ShowHelpMarker("CTRL+click to input value.");
 
             static float covar[2] = {1.0f, 1.0f};
