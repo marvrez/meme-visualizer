@@ -41,11 +41,29 @@ VDBB("Regression");
         is_trained = false;
     }
     ImGui::SameLine();
+    if (colored_button("Load..", 0.0f)) ImGui::OpenPopup("Load data from CSV?");
+    if (ImGui::BeginPopupModal("Load data from CSV?", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        static char filename[1024];
+        static bool init_filename = true;
+        ImGui::InputText("Filename", filename, sizeof(filename));
+        ImGui::Separator();
+
+        if (ImGui::Button("OK", ImVec2(120,0))) {
+            data = csv_to_matrix(filename);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120,0))) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
     if(colored_button("Run", 2.f/7.f)) {
         model = make_regression_model(learning_rate, reg_type);
         std::vector<std::vector<float> > x(data.rows);
         std::vector<float> y(data.rows);
 
+        printf("%d %d\n", data.rows, data.cols);
         if(reg_type == REGRESSION_LINEAR) {
             for(int i = 0; i < data.rows; ++i) {
                 x[i] = { data.vals[i][0] };
