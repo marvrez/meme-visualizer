@@ -63,7 +63,6 @@ VDBB("Regression");
         std::vector<std::vector<float> > x(data.rows);
         std::vector<float> y(data.rows);
 
-        printf("%d %d\n", data.rows, data.cols);
         if(reg_type == REGRESSION_LINEAR) {
             for(int i = 0; i < data.rows; ++i) {
                 x[i] = { data.vals[i][0] };
@@ -76,7 +75,9 @@ VDBB("Regression");
                 y[i] = (x[i][1] > beta*x[i][0]) ? 1 : 0;
             }
         }
+        double t1 = time_now();
         float error = regression_train(&model, x, y);
+        printf("converged after %.3lf seconds\n", time_now() - t1);
         printf("Final error: %.3f\n", error);
         if(reg_type==REGRESSION_LOGISTIC) {
             printf("bias=%.3f, weight=%.3f, weight2=%.3f\n", model.theta[0], model.theta[1], model.theta[2]);

@@ -33,7 +33,7 @@ float cross_entropy(float prediction, float target)
     return -(target*log(prediction) + (1-target)*log(1-prediction));
 }
 
-float mse(float prediction, float target)
+float squared_error(float prediction, float target)
 {
     return (prediction - target)*(prediction - target);
 }
@@ -44,7 +44,7 @@ float (*get_cost_function(regression_type_t type))(float, float)
         case REGRESSION_LOGISTIC:
             return cross_entropy;
         case REGRESSION_LINEAR:
-            return mse;
+            return squared_error;
     }
     return cross_entropy;
 }
@@ -70,7 +70,8 @@ float regression_train(regression_model_t* model, const std::vector<std::vector<
     assert(x.size() > 0);
     assert(x.size() == y.size());
     int n = x.size(), d = x[0].size();
-    float loss_sum = 0, curr_loss = 0, prev_loss = -1, tol = 1e-4;
+    float lr = model->learning_rate;
+    float curr_loss = 0.f, prev_loss = -1, tol = 1e-4;
 
     model->theta = std::vector<float>(d+1, 0.f); // +1 for bias
 
@@ -80,20 +81,20 @@ float regression_train(regression_model_t* model, const std::vector<std::vector<
 
     while(fabsf(curr_loss - prev_loss) >= tol) {
         prev_loss = curr_loss;
+        curr_loss = 0.f;
         for (int i = 0; i < n; ++i) {
             float pred = hypothesis(x[i], model->theta);
+            curr_loss += cost_function(pred, y[i]);
             float error = pred - y[i];
             // Gradient descent: update each parameters to minimize error
-            model->theta[0] = model->theta[0] - model->learning_rate*error; // update bias separately
+            model->theta[0] -= lr*error; // update bias separately
             for(int j = 1; j < d+1; ++j) {
-                model->theta[j] = model->theta[j] - model->learning_rate*error*x[i][j-1];
+                model->theta[j] -= lr*error*x[i][j-1];
             }
-            curr_loss = cost_function(pred, y[i]);
-            loss_sum += curr_loss;
         }
+        curr_loss /= n;
     }
-
-	return loss_sum / n;
+    return curr_loss;
 }
 
 float regression_predict(const regression_model_t& model, const std::vector<float>& example)

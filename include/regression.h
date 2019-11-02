@@ -17,7 +17,7 @@ float hypothesis_logistic(const std::vector<float>& x, const std::vector<float>&
 float (*get_hypothesis_function(regression_type_t type))(const std::vector<float>&, const std::vector<float>&);
 
 float cross_entropy(float prediction, float target);
-float mse(float prediction, float target);
+float squared_error(float prediction, float target);
 float (*get_cost_function(regression_type_t type))(float, float);
 
 typedef struct {

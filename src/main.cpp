@@ -2,6 +2,7 @@
 #include "image.h"
 #include "filter_image.h"
 #include "color_utils.h"
+#include "utilities.h"
 #include "pca.h"
 #include "matrix.h"
 #include "data_gen.h"
