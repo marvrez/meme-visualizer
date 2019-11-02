@@ -12,12 +12,14 @@ std::vector<matrix_t> generate_clusters(const matrix_t& centroids, const int max
     }
 
     std::vector<matrix_t> clusters;
-    for (auto centroid_iter = centroids.vals.begin(); centroid_iter != centroids.vals.end(); ++centroid_iter) {
+    for (int i = 0; i < centroids.vals.size(); ++i) {
         matrix_t cluster;
-        for(int i = 0; i < rng0.Rand(max_num_points) + 50; ++i) {
-            std::vector<float> temp_point;
-            for (auto dimension_iter = centroid_iter->begin(); dimension_iter != centroid_iter->end(); ++dimension_iter) {
-                temp_point.push_back(normal_dist(*dimension_iter, sigma));
+        const auto& centroid = centroids.vals[i];
+        int dim = centroid.size();
+        for(int num_points = 0; num_points < rng0.Rand(max_num_points) + 50; ++num_points) {
+            std::vector<float> temp_point(dim);
+            for (int d = 0; d < dim; ++d) {
+                temp_point[d] = normal_dist(centroid[d], sigma);
             }
             cluster.vals.push_back(temp_point);
         }
